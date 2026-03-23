@@ -11,6 +11,8 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+* { box-sizing: border-box; }
+
 body {
   margin: 0;
   padding: 0;
@@ -29,12 +31,7 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    rgba(201,168,76,0.015) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(180deg, transparent 0%, rgba(201,168,76,0.015) 50%, transparent 100%);
   background-size: 100% 200px;
   animation: gridScan 8s linear infinite;
   pointer-events: none;
@@ -47,15 +44,21 @@ body::before {
   z-index: 1;
 }
 
-/* Custom sleek scrollbar */
+/* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.2); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(201,168,76,0.4); }
 
-/* ============ ANIMATIONS ============ */
+/* ══════════════ ANIMATIONS ══════════════ */
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
@@ -104,4 +107,66 @@ body::before {
 @keyframes progressShimmer {
   0%   { background-position: -200% center; }
   100% { background-position: 200% center; }
+}
+
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.8; }
+}
+
+@keyframes cardEntrance {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes spinIn {
+  from { transform: rotate(-180deg) scale(0); opacity: 0; }
+  to   { transform: rotate(0deg) scale(1); opacity: 1; }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1; }
+}
+
+@keyframes recording {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,59,48,0.4); }
+  50%       { box-shadow: 0 0 0 12px rgba(255,59,48,0); }
+}
+
+@keyframes typing {
+  0%, 80%, 100% { opacity: 0.3; }
+  40% { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); max-height: 0; }
+  to   { opacity: 1; transform: translateY(0); max-height: 1000px; }
+}
+
+@keyframes toastIn {
+  from { transform: translateX(120%); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes toastOut {
+  from { transform: translateX(0); opacity: 1; }
+  to   { transform: translateX(120%); opacity: 0; }
+}
+
+/* ── Dark Dropdown Options ── */
+select,
+select option {
+  background-color: #091728;
+  color: #F0EDE8;
+}
+
+select option:hover,
+select option:checked {
+  background-color: #0F1E35;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  cursor: pointer;
 }
