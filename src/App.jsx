@@ -1,434 +1,492 @@
 import { useState, useEffect, useRef } from "react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
+import { MessageSquare, X, Send, User, ChevronRight, Activity, DollarSign, Calendar, Target, CheckCircle2, Circle } from "lucide-react";
 
-const NAVY = "#0A1628";
-const NAVY_LIGHT = "#1A2A42";
-const NAVY_MID = "#122238";
-const GOLD = "#C9A84C";
-const GOLD_DIM = "#8B7535";
-const GOLD_GLOW = "rgba(201,168,76,0.12)";
-const WHITE = "#F5F3EE";
-const WARM_WHITE = "#FAF8F3";
-const TEXT_DIM = "#8A95A8";
-const GREEN = "#3ECF8E";
-const ORANGE = "#F0A050";
-const RED = "#E85D5D";
+// --- THEME CONSTANTS ---
+const THEME = {
+  NAVY: "#0A1628",
+  NAVY_LIGHT: "#1A2A42",
+  NAVY_MID: "#122238",
+  GOLD: "#C9A84C",
+  GOLD_DIM: "#8B7535",
+  GOLD_GLOW: "rgba(201,168,76,0.12)",
+  WHITE: "#F5F3EE",
+  TEXT_DIM: "#8A95A8",
+  GREEN: "#3ECF8E",
+  ORANGE: "#F0A050",
+  BLUE: "#3B82F6",
+  PURPLE: "#A78BFA",
+};
 
+// --- SOP DATA ---
 const BUYER_STAGES = ["Lead","Pre-Qualified","Active Search","Under Contract","Due Diligence","Clear to Close","Closed"];
 const SELLER_STAGES = ["Lead","Pre-Qualified","Active Marketing","Under Contract","Due Diligence","Clear to Close","Closed"];
 const TC_STAGES = ["Received","Docs In Review","Pending Sigs","Compliance","Clear to Close","Closed"];
 const INVESTOR_STAGES = ["Lead","Property Analysis","Under Contract","Renovation","Listing Prep","Active Marketing","Closed"];
 
-const STAGE_MAP = { Buyer: BUYER_STAGES, Seller: SELLER_STAGES, TC: TC_STAGES, Investor: INVESTOR_STAGES };
-
 const BUYER_SOP = [
-  { step: "Initial Client Intake", stage: "Lead", desc: "Collect contact info, timeline, budget, location preferences, must-haves." },
-  { step: "Pre-Approval Referral", stage: "Lead", desc: "Refer to lender. Confirm pre-approval letter, loan type, amount." },
-  { step: "Buyer Consultation", stage: "Pre-Qualified", desc: "Review process, sign Buyer Broker Agreement in Dotloop. Set MLS search." },
-  { step: "Property Search Setup", stage: "Active Search", desc: "Set up MLS auto-search. Identify initial properties. Schedule showings." },
-  { step: "Showings & Feedback", stage: "Active Search", desc: "Conduct showings. Record feedback. Adjust criteria as needed." },
-  { step: "Offer Preparation", stage: "Active Search", desc: "Pull comps, draft purchase offer in Dotloop. Submit to listing agent." },
-  { step: "Negotiation & Acceptance", stage: "Under Contract", desc: "Track counteroffers. Execute signed contract via Dotloop." },
-  { step: "Earnest Money Deposit", stage: "Under Contract", desc: "Confirm EMD amount, deadline, and deposit receipt." },
-  { step: "Title Coordination", stage: "Under Contract", desc: "Open title/escrow. Provide contract and buyer info." },
-  { step: "Inspection Scheduling", stage: "Due Diligence", desc: "Schedule home, pest, wind mit, 4-point inspections." },
-  { step: "Inspection Negotiation", stage: "Due Diligence", desc: "Review report. Prepare repair/credit request if needed." },
-  { step: "Appraisal Coordination", stage: "Due Diligence", desc: "Confirm lender ordered appraisal. Review result." },
-  { step: "Loan Processing", stage: "Due Diligence", desc: "Stay in contact with lender. Track clear-to-close status." },
-  { step: "Insurance & Utilities", stage: "Clear to Close", desc: "Remind buyer to bind insurance. Coordinate utility transfers." },
-  { step: "Final Walkthrough", stage: "Clear to Close", desc: "Schedule 24-48 hrs before closing. Confirm repairs complete." },
-  { step: "Closing Prep", stage: "Clear to Close", desc: "Confirm date/time/location. Review closing disclosure." },
-  { step: "Closing Day", stage: "Closed", desc: "Attend closing. Confirm funding and recording. Hand over keys." },
-  { step: "Post-Closing Follow-Up", stage: "Closed", desc: "Thank-you gift, request review, add to past client DB." },
+  { step: "Initial Client Intake", stage: "Lead" },
+  { step: "Pre-Approval Referral", stage: "Lead" },
+  { step: "Buyer Consultation", stage: "Pre-Qualified" },
+  { step: "Property Search Setup", stage: "Active Search" },
+  { step: "Showings & Feedback", stage: "Active Search" },
+  { step: "Offer Preparation", stage: "Active Search" },
+  { step: "Negotiation & Acceptance", stage: "Under Contract" },
+  { step: "Earnest Money Deposit", stage: "Under Contract" },
+  { step: "Title Coordination", stage: "Under Contract" },
+  { step: "Inspection Scheduling", stage: "Due Diligence" },
+  { step: "Inspection Negotiation", stage: "Due Diligence" },
+  { step: "Appraisal Coordination", stage: "Due Diligence" },
+  { step: "Loan Processing", stage: "Due Diligence" },
+  { step: "Insurance & Utilities", stage: "Clear to Close" },
+  { step: "Final Walkthrough", stage: "Clear to Close" },
+  { step: "Closing Prep", stage: "Clear to Close" },
+  { step: "Closing Day", stage: "Closed" },
 ];
 
 const SELLER_SOP = [
-  { step: "Initial Seller Inquiry", stage: "Lead", desc: "Collect contact info, property address, reason for selling, timeline." },
-  { step: "Pre-Listing CMA", stage: "Lead", desc: "Pull comps. Prepare CMA report. Analyze market conditions." },
-  { step: "Listing Consultation", stage: "Pre-Qualified", desc: "Present CMA, pricing strategy, marketing plan. Sign Listing Agreement." },
-  { step: "Property Preparation", stage: "Pre-Qualified", desc: "Coordinate staging, cleaning, repairs, professional photography." },
-  { step: "MLS & Marketing Launch", stage: "Active Marketing", desc: "Enter listing in MLS. Create flyer. Schedule social media posts." },
-  { step: "Social Media Campaign", stage: "Active Marketing", desc: "Execute posting schedule. Track engagement per platform." },
-  { step: "Open House Execution", stage: "Active Marketing", desc: "Schedule, promote, host open house. Send visitor report to seller." },
-  { step: "Showing Management", stage: "Active Marketing", desc: "Coordinate showings. Collect agent feedback. Weekly seller report." },
-  { step: "Offer Review", stage: "Active Marketing", desc: "Receive offers. Prepare net sheets. Present to seller." },
-  { step: "Negotiation & Acceptance", stage: "Under Contract", desc: "Negotiate terms. Execute accepted contract in Dotloop." },
-  { step: "Title & Escrow", stage: "Under Contract", desc: "Provide contract to title company. Resolve title issues." },
-  { step: "Buyer Inspection Period", stage: "Due Diligence", desc: "Coordinate access. Negotiate repair/credit terms." },
-  { step: "Appraisal Coordination", stage: "Due Diligence", desc: "Provide comps if requested. Monitor appraisal timeline." },
-  { step: "Seller Document Prep", stage: "Due Diligence", desc: "Gather disclosures, HOA docs, survey, permits. Upload to Dotloop." },
-  { step: "Closing Coordination", stage: "Clear to Close", desc: "Confirm date/time/location. Review seller closing disclosure." },
-  { step: "Closing Day", stage: "Closed", desc: "Attend closing. Confirm proceeds disbursement. Hand off keys." },
-  { step: "Post-Closing Follow-Up", stage: "Closed", desc: "Thank-you, request review, remove lockbox/signage, update MLS." },
+  { step: "Initial Seller Inquiry", stage: "Lead" },
+  { step: "Pre-Listing CMA", stage: "Lead" },
+  { step: "Listing Consultation", stage: "Pre-Qualified" },
+  { step: "Property Preparation", stage: "Pre-Qualified" },
+  { step: "MLS & Marketing Launch", stage: "Active Marketing" },
+  { step: "Social Media Campaign", stage: "Active Marketing" },
+  { step: "Open House Execution", stage: "Active Marketing" },
+  { step: "Showing Management", stage: "Active Marketing" },
+  { step: "Offer Review", stage: "Active Marketing" },
+  { step: "Negotiation & Acceptance", stage: "Under Contract" },
+  { step: "Title & Escrow", stage: "Under Contract" },
+  { step: "Buyer Inspection Period", stage: "Due Diligence" },
+  { step: "Appraisal Coordination", stage: "Due Diligence" },
+  { step: "Seller Document Prep", stage: "Due Diligence" },
+  { step: "Closing Coordination", stage: "Clear to Close" },
+  { step: "Closing Day", stage: "Closed" },
 ];
 
-const getSOP = (type) => type === "Buyer" ? BUYER_SOP : type === "Seller" ? SELLER_SOP : BUYER_SOP;
+const TC_SOP = [
+  { step: "Contract Received", stage: "Received" },
+  { step: "Initial Document Review", stage: "Docs In Review" },
+  { step: "Missing Signatures Request", stage: "Pending Sigs" },
+  { step: "Brokerage Compliance Submit", stage: "Compliance" },
+  { step: "Clear to Close Verification", stage: "Clear to Close" },
+  { step: "Closing Day Support", stage: "Closed" },
+];
 
+const getSOP = (type) => type === "Buyer" ? BUYER_SOP : type === "Seller" ? SELLER_SOP : type === "TC" ? TC_SOP : BUYER_SOP;
+
+// --- MOCK DATA ---
 const SAMPLE_CLIENTS = [
-  { id: 1, name: "Sheryl Wojciechowski", type: "Buyer", stage: "Active Search", preApproval: "Approved", lender: "Wells Fargo", loanAmt: "$385,000", offerPrice: null, offerDate: null, inspectionDate: null, appraisalDate: null, closingDate: null, sopProgress: 4, notes: "Focused west of 49th St — Tyrone/Seminole/Largo area. Buying for daughter." },
-  { id: 2, name: "Patience Williams", type: "Buyer", stage: "Pre-Qualified", preApproval: "Approved", lender: "Rocket Mortgage", loanAmt: "$290,000", offerPrice: null, offerDate: null, inspectionDate: null, appraisalDate: null, closingDate: null, sopProgress: 2, notes: "First-time buyer. Check DARE & CRA programs." },
-  { id: 3, name: "Ryan & Angie (Investor)", type: "Investor", stage: "Under Contract", preApproval: "Cash", lender: "N/A", loanAmt: "N/A", offerPrice: "$215,000", offerDate: "03/10/2026", inspectionDate: "03/25/2026", appraisalDate: "N/A", closingDate: "04/15/2026", sopProgress: 5, notes: "Fix-and-flip. Pinellas County. Rehab budget ~$40K." },
-  { id: 4, name: "Surfside Tower Unit", type: "Seller", stage: "Active Marketing", preApproval: "N/A", lender: "N/A", loanAmt: "N/A", offerPrice: null, offerDate: null, inspectionDate: null, appraisalDate: null, closingDate: null, sopProgress: 6, notes: "15462 Gulf Blvd, Madeira Beach. Bob Dean listing. Social campaign active." },
-  { id: 5, name: "Doug (CA Relocation)", type: "Buyer", stage: "Lead", preApproval: "Pending", lender: "TBD", loanAmt: "TBD", offerPrice: null, offerDate: null, inspectionDate: null, appraisalDate: null, closingDate: null, sopProgress: 0, notes: "Relocating from California. Initial outreach sent." },
-  { id: 6, name: "Russel Henderson", type: "Buyer", stage: "Active Search", preApproval: "Approved", lender: "Navy Federal", loanAmt: "$250,000", offerPrice: null, offerDate: null, inspectionDate: null, appraisalDate: null, closingDate: null, sopProgress: 4, notes: "55+ community condo search. Clearwater/Largo area." },
+  { id: 1, name: "Sheryl Wojciechowski", type: "Buyer", agent: "bob", stage: "Active Search", preApproval: "Approved", lender: "Wells Fargo", loanAmt: "$385,000", offerPrice: null, closingDate: null, sopProgress: 4, notes: "Focused west of 49th St — Tyrone/Seminole/Largo area." },
+  { id: 2, name: "Patience Williams", type: "Buyer", agent: "bob", stage: "Pre-Qualified", preApproval: "Approved", lender: "Rocket Mortgage", loanAmt: "$290,000", offerPrice: null, closingDate: null, sopProgress: 2, notes: "First-time buyer. Check DARE & CRA programs." },
+  { id: 3, name: "Ryan & Angie", type: "Investor", agent: "bob", stage: "Under Contract", preApproval: "Cash", lender: "N/A", loanAmt: "N/A", offerPrice: "$215,000", closingDate: "04/15/2026", sopProgress: 7, notes: "Fix-and-flip. Pinellas County. Rehab budget ~$40K." },
+  { id: 4, name: "Surfside Tower Unit", type: "Seller", agent: "bob", stage: "Active Marketing", preApproval: "N/A", lender: "N/A", loanAmt: "N/A", offerPrice: null, closingDate: null, sopProgress: 6, notes: "15462 Gulf Blvd, Madeira Beach. Social campaign active." },
+  { id: 5, name: "Henderson Condo", type: "TC", agent: "amber", stage: "Compliance", preApproval: "N/A", lender: "Navy Federal", loanAmt: "$250,000", offerPrice: "$250,000", closingDate: "05/01/2026", sopProgress: 4, notes: "Needs final sig on Lead Paint disclosure." },
+  { id: 6, name: "Smith Residence", type: "TC", agent: "amber", stage: "Docs In Review", preApproval: "N/A", lender: "Suncoast CU", loanAmt: "$410,000", offerPrice: "$420,000", closingDate: "05/10/2026", sopProgress: 2, notes: "Earnest money deposit receipt missing." },
 ];
 
-const TypeBadge = ({ type }) => {
-  const colors = { Buyer: "#3B82F6", Seller: GOLD, TC: "#A78BFA", Investor: GREEN };
-  return (
-    <span style={{
-      display: "inline-block", padding: "2px 10px", borderRadius: 20,
-      fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase",
-      background: `${colors[type]}18`, color: colors[type], border: `1px solid ${colors[type]}40`
-    }}>{type}</span>
-  );
-};
+const AGENTS = [
+  { id: 'all', name: 'All Agents Portfolio' },
+  { id: 'bob', name: 'Bob Dean (Active Deals)' },
+  { id: 'amber', name: 'Amber (Transaction Coordination)' }
+];
 
-const ProgressBar = ({ current, total }) => {
-  const pct = Math.round((current / total) * 100);
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-      <div style={{ flex: 1, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.08)" }}>
-        <div style={{
-          width: `${pct}%`, height: "100%", borderRadius: 2,
-          background: pct === 100 ? GREEN : `linear-gradient(90deg, ${GOLD}, ${GOLD_DIM})`,
-          transition: "width 0.6s ease"
-        }} />
-      </div>
-      <span style={{ fontSize: 10, color: TEXT_DIM, fontVariantNumeric: "tabular-nums", minWidth: 32 }}>{pct}%</span>
-    </div>
-  );
-};
+// --- COMPONENTS ---
 
-const StatusDot = ({ status }) => {
-  const c = status === "Approved" ? GREEN : status === "Pending" ? ORANGE : status === "Cash" ? "#3B82F6" : TEXT_DIM;
-  return <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: 3, background: c, marginRight: 6 }} />;
-};
+const AI_CHAT_PROMPT = `
+You are an expert real estate AI assistant for Burley Sells Florida. 
+Your goal is to answer questions about the current clients in the deal command center.
+Here is the JSON of current clients:
+`;
 
-const ClientCard = ({ client, onClick, isDragging }) => {
-  const sop = getSOP(client.type);
-  const total = sop.length;
-  return (
-    <div
-      onClick={() => onClick(client)}
-      style={{
-        background: NAVY_MID, borderRadius: 10, padding: "14px 16px", cursor: "pointer",
-        border: `1px solid ${isDragging ? GOLD : "rgba(255,255,255,0.06)"}`,
-        transition: "all 0.2s ease", marginBottom: 8,
-        boxShadow: isDragging ? `0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px ${GOLD}40` : "0 2px 8px rgba(0,0,0,0.2)",
-      }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = `${GOLD}60`; e.currentTarget.style.transform = "translateY(-1px)"; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.transform = "none"; }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: WHITE, lineHeight: 1.3, flex: 1, marginRight: 8 }}>{client.name}</span>
-        <TypeBadge type={client.type} />
-      </div>
-      {client.preApproval && client.preApproval !== "N/A" && (
-        <div style={{ fontSize: 11, color: TEXT_DIM, marginBottom: 4, display: "flex", alignItems: "center" }}>
-          <StatusDot status={client.preApproval} />
-          {client.preApproval === "Cash" ? "Cash Buyer" : `${client.preApproval} — ${client.lender}`}
-          {client.loanAmt && client.loanAmt !== "N/A" && client.loanAmt !== "TBD" && <span style={{ color: GOLD, marginLeft: 6 }}>{client.loanAmt}</span>}
-        </div>
-      )}
-      {client.offerPrice && (
-        <div style={{ fontSize: 11, color: TEXT_DIM, marginBottom: 4 }}>
-          Offer: <span style={{ color: WHITE }}>{client.offerPrice}</span>
-          {client.offerDate && <span style={{ marginLeft: 8, color: TEXT_DIM }}>({client.offerDate})</span>}
-        </div>
-      )}
-      <div style={{ display: "flex", gap: 12, marginTop: 6, flexWrap: "wrap" }}>
-        {client.inspectionDate && (
-          <span style={{ fontSize: 10, color: ORANGE, background: `${ORANGE}15`, padding: "2px 8px", borderRadius: 4 }}>
-            Inspect: {client.inspectionDate}
-          </span>
-        )}
-        {client.closingDate && (
-          <span style={{ fontSize: 10, color: GREEN, background: `${GREEN}15`, padding: "2px 8px", borderRadius: 4 }}>
-            Close: {client.closingDate}
-          </span>
-        )}
-      </div>
-      <ProgressBar current={client.sopProgress} total={total} />
-    </div>
-  );
-};
+const AIChatWindow = ({ clients }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([{ role: "assistant", content: "Hello! I am your Burley Sells Florida AI assistant. How can I help you analyze our current deals and clients?" }]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const endRef = useRef(null);
 
-const SOPPanel = ({ client, onClose }) => {
-  const sop = getSOP(client.type);
-  const [expandedStep, setExpandedStep] = useState(null);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!input.trim()) return;
+    const userMessage = { role: "user", content: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput("");
+    setLoading(true);
+
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    if (!apiKey) {
+      setMessages(prev => [...prev, { role: "assistant", content: "Error: VITE_OPENAI_API_KEY environment variable is missing. Please configure it to use the AI Chat." }]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: "gpt-4o-mini", // Using an efficient model
+          messages: [
+            { role: "system", content: AI_CHAT_PROMPT + JSON.stringify(clients, null, 2) },
+            ...messages,
+            userMessage
+          ]
+        })
+      });
+      const data = await response.json();
+      if (data.choices && data.choices[0]) {
+        setMessages(prev => [...prev, { role: "assistant", content: data.choices[0].message.content }]);
+      } else {
+        setMessages(prev => [...prev, { role: "assistant", content: "Sorry, I received an invalid response from the API." }]);
+      }
+    } catch (err) {
+      setMessages(prev => [...prev, { role: "assistant", content: `Error: ${err.message}` }]);
+    }
+    setLoading(false);
+  };
+
+  if (!isOpen) {
+    return (
+      <button 
+        onClick={() => setIsOpen(true)}
+        style={{
+          position: "fixed", bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28,
+          background: `linear-gradient(135deg, ${THEME.GOLD}, ${THEME.GOLD_DIM})`,
+          color: THEME.NAVY, border: "none", cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: `0 8px 24px rgba(0,0,0,0.4), 0 0 0 2px ${THEME.GOLD_GLOW}`,
+          zIndex: 1000, transition: "transform 0.2s"
+        }}
+        onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
+        onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+      >
+        <MessageSquare size={24} />
+      </button>
+    );
+  }
+
   return (
     <div style={{
-      position: "fixed", top: 0, right: 0, width: 420, height: "100vh", background: NAVY,
-      borderLeft: `1px solid ${GOLD}30`, zIndex: 100, display: "flex", flexDirection: "column",
-      boxShadow: "-8px 0 40px rgba(0,0,0,0.5)", animation: "slideIn 0.3s ease"
+      position: "fixed", bottom: 24, right: 24, width: 380, height: 500, borderRadius: 16,
+      background: THEME.NAVY_MID, border: `1px solid ${THEME.GOLD}30`, overflow: "hidden",
+      display: "flex", flexDirection: "column", boxShadow: "-8px 8px 40px rgba(0,0,0,0.6)",
+      zIndex: 1000, animation: "slideUp 0.3s ease-out"
     }}>
-      <style>{`@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }`}</style>
-      <div style={{ padding: "20px 24px", borderBottom: `1px solid rgba(255,255,255,0.08)` }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <div>
-            <h2 style={{ margin: 0, fontSize: 18, color: WHITE, fontWeight: 700 }}>{client.name}</h2>
-            <div style={{ marginTop: 6, display: "flex", gap: 8, alignItems: "center" }}>
-              <TypeBadge type={client.type} />
-              <span style={{ fontSize: 12, color: GOLD }}>{client.stage}</span>
-            </div>
+      <div style={{
+        padding: "16px 20px", background: THEME.NAVY, borderBottom: `1px solid rgba(255,255,255,0.06)`,
+        display: "flex", justifyContent: "space-between", alignItems: "center"
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 8, height: 8, borderRadius: 4, background: THEME.GOLD, boxShadow: `0 0 8px ${THEME.GOLD}` }} />
+          <span style={{ fontWeight: 600, color: THEME.WHITE }}>BSF Deal Assistant</span>
+        </div>
+        <button onClick={() => setIsOpen(false)} style={{ background: "none", border: "none", color: THEME.TEXT_DIM, cursor: "pointer" }}>
+          <X size={20} />
+        </button>
+      </div>
+      <div style={{ flex: 1, padding: 16, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
+        {messages.map((m, i) => (
+          <div key={i} style={{ 
+            alignSelf: m.role === "assistant" ? "flex-start" : "flex-end",
+            background: m.role === "assistant" ? THEME.NAVY_LIGHT : `linear-gradient(135deg, ${THEME.GOLD}, ${THEME.GOLD_DIM})`,
+            color: m.role === "assistant" ? THEME.WHITE : THEME.NAVY,
+            padding: "10px 14px", borderRadius: 12, maxWidth: "85%", fontSize: 14, lineHeight: 1.4
+          }}>
+            {m.content}
           </div>
-          <button onClick={onClose} style={{
-            background: "rgba(255,255,255,0.06)", border: "none", color: TEXT_DIM,
-            width: 32, height: 32, borderRadius: 8, cursor: "pointer", fontSize: 16,
-            display: "flex", alignItems: "center", justifyContent: "center"
-          }}>✕</button>
-        </div>
-        {client.notes && (
-          <p style={{ margin: "12px 0 0", fontSize: 12, color: TEXT_DIM, lineHeight: 1.5, fontStyle: "italic" }}>
-            {client.notes}
-          </p>
-        )}
-        <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          {client.preApproval && client.preApproval !== "N/A" && (
-            <div style={{ background: NAVY_LIGHT, borderRadius: 8, padding: "8px 12px" }}>
-              <div style={{ fontSize: 9, color: TEXT_DIM, textTransform: "uppercase", letterSpacing: 1 }}>Pre-Approval</div>
-              <div style={{ fontSize: 13, color: WHITE, marginTop: 2 }}><StatusDot status={client.preApproval} />{client.preApproval}</div>
-            </div>
-          )}
-          {client.lender && client.lender !== "N/A" && client.lender !== "TBD" && (
-            <div style={{ background: NAVY_LIGHT, borderRadius: 8, padding: "8px 12px" }}>
-              <div style={{ fontSize: 9, color: TEXT_DIM, textTransform: "uppercase", letterSpacing: 1 }}>Lender</div>
-              <div style={{ fontSize: 13, color: WHITE, marginTop: 2 }}>{client.lender}</div>
-            </div>
-          )}
-          {client.offerPrice && (
-            <div style={{ background: NAVY_LIGHT, borderRadius: 8, padding: "8px 12px" }}>
-              <div style={{ fontSize: 9, color: TEXT_DIM, textTransform: "uppercase", letterSpacing: 1 }}>Offer</div>
-              <div style={{ fontSize: 13, color: GOLD, marginTop: 2 }}>{client.offerPrice}</div>
-            </div>
-          )}
-          {client.closingDate && (
-            <div style={{ background: NAVY_LIGHT, borderRadius: 8, padding: "8px 12px" }}>
-              <div style={{ fontSize: 9, color: TEXT_DIM, textTransform: "uppercase", letterSpacing: 1 }}>Closing</div>
-              <div style={{ fontSize: 13, color: GREEN, marginTop: 2 }}>{client.closingDate}</div>
-            </div>
-          )}
-        </div>
+        ))}
+        {loading && <div style={{ color: THEME.TEXT_DIM, fontSize: 12, fontStyle: "italic" }}>Assistant is typing...</div>}
+        <div ref={endRef} />
       </div>
-      <div style={{ flex: 1, overflowY: "auto", padding: "16px 24px" }}>
-        <div style={{ fontSize: 11, color: TEXT_DIM, textTransform: "uppercase", letterSpacing: 1, marginBottom: 12, fontWeight: 600 }}>
-          Transaction Checklist — {client.sopProgress} of {sop.length} complete
-        </div>
-        <ProgressBar current={client.sopProgress} total={sop.length} />
-        <div style={{ marginTop: 16 }}>
-          {sop.map((s, i) => {
-            const done = i < client.sopProgress;
-            const current = i === client.sopProgress;
-            const expanded = expandedStep === i;
-            return (
-              <div
-                key={i}
-                onClick={() => setExpandedStep(expanded ? null : i)}
-                style={{
-                  display: "flex", gap: 12, padding: "10px 0", cursor: "pointer",
-                  borderBottom: "1px solid rgba(255,255,255,0.04)",
-                  opacity: done ? 0.5 : 1,
-                }}
-              >
-                <div style={{
-                  minWidth: 24, height: 24, borderRadius: 12,
-                  background: done ? GREEN : current ? GOLD : "transparent",
-                  border: done ? "none" : current ? "none" : `1.5px solid rgba(255,255,255,0.15)`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 11, fontWeight: 700, color: done || current ? NAVY : TEXT_DIM,
-                  flexShrink: 0, marginTop: 1,
-                  boxShadow: current ? `0 0 12px ${GOLD}40` : "none"
-                }}>
-                  {done ? "✓" : i + 1}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, color: current ? WHITE : done ? TEXT_DIM : "rgba(255,255,255,0.7)", fontWeight: current ? 600 : 400 }}>
-                    {s.step}
-                  </div>
-                  <div style={{ fontSize: 10, color: `${GOLD}80`, marginTop: 2 }}>{s.stage}</div>
-                  {expanded && (
-                    <div style={{
-                      fontSize: 12, color: TEXT_DIM, lineHeight: 1.5, marginTop: 8,
-                      padding: "10px 12px", background: NAVY_LIGHT, borderRadius: 8,
-                      borderLeft: `2px solid ${current ? GOLD : "rgba(255,255,255,0.1)"}`
-                    }}>
-                      {s.desc}
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      <div style={{ padding: 16, background: THEME.NAVY, borderTop: `1px solid rgba(255,255,255,0.06)`, display: "flex", gap: 10 }}>
+        <input 
+          type="text" value={input} onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && handleSend()}
+          placeholder="Ask about active deals..."
+          style={{
+            flex: 1, padding: "10px 14px", borderRadius: 8, background: THEME.NAVY_LIGHT, border: "none",
+            color: THEME.WHITE, outline: "none"
+          }}
+        />
+        <button onClick={handleSend} disabled={loading} style={{
+          background: THEME.GOLD, color: THEME.NAVY, border: "none", width: 40, height: 40,
+          borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+          opacity: loading ? 0.5 : 1
+        }}>
+          <Send size={18} />
+        </button>
       </div>
+    </div>
+  );
+};
+
+const TypeBadge = ({ type }) => {
+  const colors = { Buyer: THEME.BLUE, Seller: THEME.GOLD, TC: THEME.PURPLE, Investor: THEME.GREEN };
+  const c = colors[type];
+  return (
+    <div style={{
+      display: "inline-flex", padding: "4px 12px", borderRadius: 20,
+      fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase",
+      background: `${c}15`, color: c, border: `1px solid ${c}30`, alignItems: "center", gap: 6
+    }}>
+      <div style={{ width: 6, height: 6, borderRadius: 3, background: c }} />
+      {type}
     </div>
   );
 };
 
 export default function DealCommandCenter() {
   const [clients] = useState(SAMPLE_CLIENTS);
-  const [filter, setFilter] = useState("All");
+  const [activeAgent, setActiveAgent] = useState('all');
   const [selectedClient, setSelectedClient] = useState(null);
-  const [time, setTime] = useState(new Date());
 
-  useEffect(() => {
-    const t = setInterval(() => setTime(new Date()), 60000);
-    return () => clearInterval(t);
-  }, []);
+  const filteredClients = activeAgent === 'all' 
+    ? clients 
+    : clients.filter(c => c.agent === activeAgent);
 
-  const filtered = filter === "All" ? clients : clients.filter(c => c.type === filter);
-  const activeStages = filter === "All" ? BUYER_STAGES : STAGE_MAP[filter] || BUYER_STAGES;
+  // Group by stage for the charts
+  const stageStats = filteredClients.reduce((acc, c) => {
+    acc[c.stage] = (acc[c.stage] || 0) + 1;
+    return acc;
+  }, {});
+  const chartData = Object.keys(stageStats).map(key => ({ name: key, count: stageStats[key] }));
 
-  const stats = {
-    active: clients.filter(c => c.stage !== "Closed").length,
-    buyers: clients.filter(c => c.type === "Buyer").length,
-    sellers: clients.filter(c => c.type === "Seller").length,
-    underContract: clients.filter(c => c.stage === "Under Contract").length,
-  };
+  // Value aggregation (basic calculation, stripping non-numeric for demonstration)
+  let totalPipelineValue = 0;
+  filteredClients.forEach(c => {
+    if (c.offerPrice && typeof c.offerPrice === 'string' && c.offerPrice.includes('$')) {
+      const val = parseInt(c.offerPrice.replace(/\D/g, ''));
+      if (!isNaN(val)) totalPipelineValue += val;
+    } else if (c.loanAmt && typeof c.loanAmt === 'string' && c.loanAmt.includes('$')) {
+      const val = parseInt(c.loanAmt.replace(/\D/g, ''));
+      if (!isNaN(val)) totalPipelineValue += val;
+    }
+  });
 
   return (
-    <div style={{
-      minHeight: "100vh", background: NAVY, fontFamily: "'Inter', -apple-system, sans-serif",
-      color: WHITE, position: "relative", overflow: "hidden"
-    }}>
-      {/* Ambient glow */}
-      <div style={{
-        position: "fixed", top: -200, right: -200, width: 600, height: 600,
-        background: `radial-gradient(circle, ${GOLD}06 0%, transparent 70%)`,
-        pointerEvents: "none"
-      }} />
-
-      {/* Header */}
+    <div style={{ minHeight: "100vh", background: THEME.NAVY, color: THEME.WHITE }}>
+      {/* HEADER */}
       <header style={{
-        padding: "20px 32px", borderBottom: `1px solid rgba(255,255,255,0.06)`,
+        padding: "20px 40px", borderBottom: `1px solid rgba(255,255,255,0.06)`,
         display: "flex", justifyContent: "space-between", alignItems: "center",
-        background: `linear-gradient(180deg, ${NAVY} 0%, ${NAVY}F0 100%)`,
-        backdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 50
+        background: `linear-gradient(180deg, ${THEME.NAVY} 0%, ${THEME.NAVY}F0 100%)`,
+        position: "sticky", top: 0, zIndex: 50, backdropFilter: "blur(12px)"
       }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: 8, background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DIM})`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 16, fontWeight: 800, color: NAVY
-            }}>B</div>
-            <div>
-              <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: -0.3 }}>Deal Command Center</h1>
-              <span style={{ fontSize: 11, color: TEXT_DIM }}>Burley Sells Florida</span>
-            </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          {/* Logo Placeholder (assuming logo.png is in public folder as requested) */}
+          <img src="/logo.png" alt="Burley Sells Florida Logo" style={{ height: 48, objectFit: "contain" }} onError={(e) => {
+            e.target.style.display = 'none'; // Fallback if no logo
+            e.target.nextSibling.style.display = 'flex';
+          }} />
+          <div style={{ display: "none", width: 48, height: 48, borderRadius: 12, background: `linear-gradient(135deg, ${THEME.GOLD}, ${THEME.GOLD_DIM})`, alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 900, color: THEME.NAVY }}>BSF</div>
+          
+          <div>
+            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, letterSpacing: -0.5, color: THEME.WHITE }}>Deal Command Center</h1>
+            <span style={{ fontSize: 13, color: THEME.GOLD, fontWeight: 500, letterSpacing: 1, textTransform: "uppercase" }}>Executive Dashboard</span>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 11, color: TEXT_DIM }}>{time.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
-            <div style={{ fontSize: 11, color: GOLD }}>{stats.active} active deals</div>
-          </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {AGENTS.map(agent => (
+            <button
+              key={agent.id}
+              onClick={() => setActiveAgent(agent.id)}
+              style={{
+                padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer",
+                background: activeAgent === agent.id ? THEME.NAVY_LIGHT : "transparent",
+                color: activeAgent === agent.id ? THEME.WHITE : THEME.TEXT_DIM,
+                fontWeight: activeAgent === agent.id ? 600 : 400,
+                transition: "all 0.2s"
+              }}
+            >
+              {agent.name}
+            </button>
+          ))}
         </div>
       </header>
 
-      {/* Stats Bar */}
-      <div style={{
-        display: "flex", gap: 12, padding: "16px 32px",
-        borderBottom: "1px solid rgba(255,255,255,0.04)"
-      }}>
-        {[
-          { label: "Active Deals", value: stats.active, color: WHITE },
-          { label: "Buyers", value: stats.buyers, color: "#3B82F6" },
-          { label: "Listings", value: stats.sellers, color: GOLD },
-          { label: "Under Contract", value: stats.underContract, color: GREEN },
-        ].map((s, i) => (
-          <div key={i} style={{
-            background: NAVY_LIGHT, borderRadius: 10, padding: "12px 20px",
-            border: "1px solid rgba(255,255,255,0.04)", minWidth: 120
-          }}>
-            <div style={{ fontSize: 24, fontWeight: 700, color: s.color, fontVariantNumeric: "tabular-nums" }}>{s.value}</div>
-            <div style={{ fontSize: 10, color: TEXT_DIM, textTransform: "uppercase", letterSpacing: 1, marginTop: 2 }}>{s.label}</div>
+      {/* DASHBOARD SUMMARY */}
+      <div style={{ padding: "40px", display: "grid", gridTemplateColumns: "300px 1fr", gap: 40, maxWidth: 1400, margin: "0 auto" }}>
+        
+        {/* KPI Column */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div style={{ background: THEME.NAVY_MID, padding: 24, borderRadius: 16, border: `1px solid rgba(255,255,255,0.05)`, boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+              <Activity size={20} color={THEME.GREEN} />
+              <h3 style={{ margin: 0, fontSize: 14, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1 }}>Active Deals</h3>
+            </div>
+            <div style={{ fontSize: 48, fontWeight: 700, color: THEME.WHITE, lineHeight: 1 }}>{filteredClients.length}</div>
           </div>
-        ))}
+
+          <div style={{ background: THEME.NAVY_MID, padding: 24, borderRadius: 16, border: `1px solid rgba(255,255,255,0.05)`, boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+              <DollarSign size={20} color={THEME.GOLD} />
+              <h3 style={{ margin: 0, fontSize: 14, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1 }}>Est. Pipeline Volume</h3>
+            </div>
+            <div style={{ fontSize: 36, fontWeight: 700, color: THEME.GOLD, lineHeight: 1 }}>
+              ${totalPipelineValue > 0 ? totalPipelineValue.toLocaleString() : "---"}
+            </div>
+          </div>
+        </div>
+
+        {/* Charts Column */}
+        <div style={{ background: THEME.NAVY_MID, padding: 32, borderRadius: 16, border: `1px solid rgba(255,255,255,0.05)`, boxShadow: "0 10px 30px rgba(0,0,0,0.2)", display: "flex", flexDirection: "column" }}>
+          <h3 style={{ margin: "0 0 24px 0", fontSize: 16, color: THEME.WHITE, fontWeight: 600 }}>Deals by Stage Representation</h3>
+          <div style={{ flex: 1, minHeight: 250 }}>
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <XAxis dataKey="name" stroke={THEME.TEXT_DIM} fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke={THEME.TEXT_DIM} fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip cursor={{ fill: 'rgba(255,255,255,0.04)' }} contentStyle={{ backgroundColor: THEME.NAVY, border: `1px solid ${THEME.GOLD}30`, borderRadius: 8, color: THEME.WHITE }} />
+                  <Bar dataKey="count" fill={THEME.GOLD} radius={[4, 4, 0, 0]}>
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={index % 2 === 0 ? THEME.GOLD : THEME.GOLD_DIM} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ display: "flex", height: "100%", alignItems: "center", justifyContent: "center", color: THEME.TEXT_DIM }}>No Active Deals in this View</div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div style={{ display: "flex", gap: 4, padding: "12px 32px" }}>
-        {["All", "Buyer", "Seller", "TC", "Investor"].map(f => (
-          <button
-            key={f} onClick={() => setFilter(f)}
-            style={{
-              padding: "6px 16px", borderRadius: 20, border: "1px solid",
-              borderColor: filter === f ? GOLD : "rgba(255,255,255,0.08)",
-              background: filter === f ? `${GOLD}15` : "transparent",
-              color: filter === f ? GOLD : TEXT_DIM,
-              fontSize: 12, fontWeight: 500, cursor: "pointer",
-              transition: "all 0.2s ease"
-            }}
-          >{f}</button>
-        ))}
-      </div>
+      {/* FEED (CLIENT LIST) */}
+      <div style={{ padding: "0 40px 100px", maxWidth: 1400, margin: "0 auto" }}>
+        <h2 style={{ fontSize: 20, fontWeight: 600, color: THEME.WHITE, borderBottom: `1px solid rgba(255,255,255,0.1)`, paddingBottom: 16, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span>Client Portfolio Flow</span>
+          <span style={{ fontSize: 13, fontWeight: 400, color: THEME.TEXT_DIM }}>{filteredClients.length} records found</span>
+        </h2>
+        
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {filteredClients.map(client => {
+            const sop = getSOP(client.type);
+            const isSelected = selectedClient?.id === client.id;
+            
+            return (
+              <div key={client.id}>
+                {/* LIST CARD ITEM */}
+                <div 
+                  onClick={() => setSelectedClient(isSelected ? null : client)}
+                  style={{
+                    background: isSelected ? THEME.NAVY_LIGHT : THEME.NAVY_MID, 
+                    borderRadius: isSelected ? "16px 16px 0 0" : 16, 
+                    padding: "24px 32px", cursor: "pointer",
+                    border: `1px solid ${isSelected ? THEME.GOLD : "rgba(255,255,255,0.04)"}`,
+                    transition: "all 0.3s ease", display: "flex", alignItems: "center", gap: 24,
+                    boxShadow: isSelected ? `0 10px 40px rgba(0,0,0,0.4)` : 'none'
+                  }}
+                >
+                  <div style={{ flex: "0 0 250px" }}>
+                    <div style={{ fontSize: 18, fontWeight: 600, color: THEME.WHITE, marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
+                      <User size={18} color={THEME.GOLD} /> {client.name}
+                    </div>
+                    <TypeBadge type={client.type} />
+                  </div>
+                  
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 12, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Current Stage</div>
+                    <div style={{ fontSize: 16, fontWeight: 500, color: THEME.WHITE }}>{client.stage}</div>
+                  </div>
 
-      {/* Kanban Board */}
-      <div style={{
-        display: "flex", gap: 0, padding: "0 32px 32px",
-        overflowX: "auto", flex: 1
-      }}>
-        {activeStages.map((stage, si) => {
-          const stageClients = filtered.filter(c => c.stage === stage);
-          const isFirst = si === 0;
-          const isLast = si === activeStages.length - 1;
-          return (
-            <div key={stage} style={{
-              minWidth: 220, maxWidth: 260, flex: 1,
-              borderRight: isLast ? "none" : "1px solid rgba(255,255,255,0.04)",
-              padding: "0 12px"
-            }}>
-              {/* Column Header */}
-              <div style={{
-                padding: "12px 4px 16px", display: "flex", justifyContent: "space-between", alignItems: "center",
-                borderBottom: `2px solid ${stageClients.length > 0 ? GOLD : "rgba(255,255,255,0.06)"}`,
-                marginBottom: 12
-              }}>
-                <span style={{
-                  fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1,
-                  color: stageClients.length > 0 ? WHITE : TEXT_DIM
-                }}>{stage}</span>
-                <span style={{
-                  fontSize: 11, fontWeight: 700,
-                  color: stageClients.length > 0 ? GOLD : "rgba(255,255,255,0.15)",
-                  background: stageClients.length > 0 ? `${GOLD}15` : "transparent",
-                  padding: "2px 8px", borderRadius: 10
-                }}>{stageClients.length}</span>
-              </div>
-              {/* Cards */}
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {stageClients.map(c => (
-                  <ClientCard key={c.id} client={c} onClick={setSelectedClient} />
-                ))}
-                {stageClients.length === 0 && (
+                  <div style={{ flex: "0 0 200px" }}>
+                    {client.offerPrice || client.loanAmt !== "N/A" ? (
+                      <>
+                        <div style={{ fontSize: 12, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Value Focus</div>
+                        <div style={{ fontSize: 16, fontWeight: 500, color: THEME.GOLD }}>{client.offerPrice || client.loanAmt}</div>
+                      </>
+                    ) : (
+                      <div style={{ color: THEME.TEXT_DIM, fontStyle: "italic", fontSize: 14 }}>Valuation Pending</div>
+                    )}
+                  </div>
+
+                  <div style={{ width: 150 }}>
+                     <div style={{ fontSize: 11, color: THEME.TEXT_DIM, marginBottom: 6, display: "flex", justifyContent: "space-between" }}>
+                       <span>Progress</span>
+                       <span>{Math.round((client.sopProgress / sop.length) * 100)}%</span>
+                     </div>
+                     <div style={{ height: 6, background: "rgba(255,255,255,0.1)", borderRadius: 3, overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${(client.sopProgress / sop.length) * 100}%`, background: THEME.GREEN, borderRadius: 3 }} />
+                     </div>
+                  </div>
+
+                  <div>
+                    <ChevronRight size={24} color={isSelected ? THEME.GOLD : THEME.TEXT_DIM} style={{ transform: isSelected ? 'rotate(90deg)' : 'none', transition: 'transform 0.3s' }} />
+                  </div>
+                </div>
+
+                {/* EXPANDED PROFILE TAB */}
+                {isSelected && (
                   <div style={{
-                    height: 80, borderRadius: 10, border: "1px dashed rgba(255,255,255,0.06)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 11, color: "rgba(255,255,255,0.1)"
+                    background: THEME.NAVY_LIGHT, border: `1px solid ${THEME.GOLD}`, borderTop: "none",
+                    borderRadius: "0 0 16px 16px", padding: 32, display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: 40,
+                    animation: "fadeIn 0.3s ease-out"
                   }}>
-                    No deals
+                    {/* LEFT PANEL: Details */}
+                    <div>
+                      <h4 style={{ fontSize: 16, fontWeight: 600, color: THEME.WHITE, borderBottom: `1px solid rgba(255,255,255,0.1)`, paddingBottom: 12, marginBottom: 20 }}>Client Dossier</h4>
+                      
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
+                        <div>
+                           <div style={{ fontSize: 11, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Pre-Approval</div>
+                           <div style={{ color: THEME.WHITE, fontSize: 14, fontWeight: 500 }}>{client.preApproval || "N/A"}</div>
+                        </div>
+                        <div>
+                           <div style={{ fontSize: 11, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Lender</div>
+                           <div style={{ color: THEME.WHITE, fontSize: 14, fontWeight: 500 }}>{client.lender || "N/A"}</div>
+                        </div>
+                        <div>
+                           <div style={{ fontSize: 11, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}><Calendar size={12} style={{marginRight: 4, display: 'inline'}}/> Target Close</div>
+                           <div style={{ color: THEME.WHITE, fontSize: 14, fontWeight: 500 }}>{client.closingDate || "TBD"}</div>
+                        </div>
+                        <div>
+                           <div style={{ fontSize: 11, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}><Target size={12} style={{marginRight: 4, display: 'inline'}}/> Representation</div>
+                           <div style={{ color: THEME.WHITE, fontSize: 14, fontWeight: 500 }}>{client.agent === 'bob' ? "Bob Dean" : "Amber"}</div>
+                        </div>
+                      </div>
+
+                      <div style={{ background: "rgba(0,0,0,0.2)", padding: 16, borderRadius: 8, borderLeft: `4px solid ${THEME.GOLD}` }}>
+                        <div style={{ fontSize: 11, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Strategic Notes</div>
+                        <div style={{ fontSize: 14, color: THEME.WHITE, lineHeight: 1.6 }}>{client.notes || "No standard operational notes documented yet."}</div>
+                      </div>
+                    </div>
+
+                    {/* RIGHT PANEL: SOP Pipeline */}
+                    <div>
+                      <h4 style={{ fontSize: 16, fontWeight: 600, color: THEME.WHITE, borderBottom: `1px solid rgba(255,255,255,0.1)`, paddingBottom: 12, marginBottom: 20 }}>Action Trajectory</h4>
+                      <div style={{ maxHeight: 300, overflowY: "auto", paddingRight: 10 }}>
+                        {sop.map((step, idx) => {
+                          const isComplete = idx < client.sopProgress;
+                          const isCurrent = idx === client.sopProgress;
+                          return (
+                            <div key={idx} style={{ display: "flex", gap: 16, marginBottom: 16, opacity: isComplete ? 0.6 : 1 }}>
+                              <div style={{ paddingTop: 2 }}>
+                                {isComplete ? <CheckCircle2 size={20} color={THEME.GREEN} /> : isCurrent ? <Circle size={20} color={THEME.GOLD} fill={THEME.GOLD_GLOW} /> : <Circle size={20} color={THEME.TEXT_DIM} />}
+                              </div>
+                              <div>
+                                <div style={{ fontSize: 14, fontWeight: isCurrent ? 600 : 400, color: isCurrent ? THEME.WHITE : isComplete ? THEME.TEXT_DIM : "rgba(255,255,255,0.5)" }}>{step.step}</div>
+                                <div style={{ fontSize: 11, color: isCurrent ? THEME.GOLD : THEME.TEXT_DIM, marginTop: 2 }}>Phase: {step.stage}</div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+
                   </div>
                 )}
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
-      {/* SOP Detail Panel */}
-      {selectedClient && (
-        <>
-          <div
-            onClick={() => setSelectedClient(null)}
-            style={{
-              position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
-              backdropFilter: "blur(4px)", zIndex: 90
-            }}
-          />
-          <SOPPanel client={selectedClient} onClose={() => setSelectedClient(null)} />
-        </>
-      )}
+      <AIChatWindow clients={clients} />
+
     </div>
   );
 }
