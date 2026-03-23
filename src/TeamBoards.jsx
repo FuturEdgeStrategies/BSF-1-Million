@@ -198,9 +198,9 @@ export const BobBoard = ({ clients, tasks }) => {
     }, 0);
   }, [bobClients]);
 
-  const buyers = bobClients.filter((c) => c.type === "Buyer");
+  // Investors show under Buyers but keep their Investor badge
+  const buyers = bobClients.filter((c) => c.type === "Buyer" || c.type === "Investor");
   const sellers = bobClients.filter((c) => c.type === "Seller");
-  const investors = bobClients.filter((c) => c.type === "Investor");
   const underContract = bobClients.filter((c) => c.stage === "Under Contract" || c.stage === "Due Diligence" || c.stage === "Clear to Close");
   const activeTasks = bobTasks.filter((t) => t.status !== "completed");
   const overdueTasks = bobTasks.filter((t) => {
@@ -271,20 +271,6 @@ export const BobBoard = ({ clients, tasks }) => {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {sellers.map((c) => <MiniClientRow key={c.id} client={c} accent={THEME.GOLD} tasks={tasks} />)}
-              </div>
-            </div>
-          )}
-
-          {/* Investors */}
-          {investors.length > 0 && (
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <Star size={14} color={THEME.GREEN} />
-                <span style={{ fontSize: 13, fontWeight: 700, color: THEME.WHITE, textTransform: "uppercase", letterSpacing: 1.2 }}>Investors</span>
-                <span style={{ fontSize: 11, color: THEME.TEXT_DIM, marginLeft: "auto" }}>{investors.length}</span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {investors.map((c) => <MiniClientRow key={c.id} client={c} accent={THEME.GREEN} tasks={tasks} />)}
               </div>
             </div>
           )}
