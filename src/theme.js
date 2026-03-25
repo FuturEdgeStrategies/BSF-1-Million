@@ -161,3 +161,29 @@ export const calculateCommission = (client) => {
   }
   return { contractPrice, rate, grossCommission, brokerageCut, agentNet, myTakeHome, splitLabel };
 };
+
+// ── ASIS-6 TRANSACTION TIMELINE ──
+export const TIMELINE_FIELDS = [
+  { key: "effective_date", label: "Effective Date" },
+  { key: "inspection_end_date", label: "Inspection Period End" },
+  { key: "escrow_deposit_due", label: "Escrow Deposit Due" },
+  { key: "title_evidence_deadline", label: "Title Evidence Deadline" },
+  { key: "survey_deadline", label: "Survey Deadline" },
+  { key: "walkthrough_date", label: "Walk-Through" },
+  { key: "closing_date", label: "Closing Date" },
+];
+
+export const UNDER_CONTRACT_STAGES = ["Under Contract", "Due Diligence", "Clear to Close", "Closed"];
+
+export const getDateStatus = (dateStr) => {
+  if (!dateStr) return { text: "Not set", color: THEME.TEXT_DIM, urgent: false };
+  const d = new Date(dateStr + "T00:00:00");
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const diff = Math.ceil((d - now) / 86400000);
+  const formatted = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  if (diff < 0) return { text: `${formatted} (${Math.abs(diff)}d overdue)`, color: THEME.RED, urgent: true };
+  if (diff === 0) return { text: `${formatted} (Today)`, color: THEME.ORANGE, urgent: true };
+  if (diff <= 3) return { text: `${formatted} (${diff}d)`, color: THEME.ORANGE, urgent: true };
+  return { text: formatted, color: THEME.GREEN, urgent: false };
+};

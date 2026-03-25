@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { X, Trash2, CheckCircle2, Circle, Camera, Loader } from "lucide-react";
-import { THEME, glassCard, getSOP } from "./theme";
+import { THEME, glassCard, getSOP, TIMELINE_FIELDS } from "./theme";
 import { supabase } from "./supabaseClient";
 
 const modalOverlay = {
@@ -259,6 +259,12 @@ export const EditClientModal = ({ client, onClose, onUpdated, onDeleted }) => {
     commission_rate: client.commission_rate || 0.03,
     commission_split: client.commission_split || "solo",
     avatar_url: client.avatar_url || "",
+    effective_date: client.effective_date || "",
+    inspection_end_date: client.inspection_end_date || "",
+    escrow_deposit_due: client.escrow_deposit_due || "",
+    title_evidence_deadline: client.title_evidence_deadline || "",
+    survey_deadline: client.survey_deadline || "",
+    walkthrough_date: client.walkthrough_date || "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -282,6 +288,12 @@ export const EditClientModal = ({ client, onClose, onUpdated, onDeleted }) => {
         commission_rate: parseFloat(form.commission_rate) || 0.03,
         commission_split: form.commission_split || "solo",
         avatar_url: form.avatar_url || null,
+        effective_date: form.effective_date || null,
+        inspection_end_date: form.inspection_end_date || null,
+        escrow_deposit_due: form.escrow_deposit_due || null,
+        title_evidence_deadline: form.title_evidence_deadline || null,
+        survey_deadline: form.survey_deadline || null,
+        walkthrough_date: form.walkthrough_date || null,
       })
       .eq("id", client.id);
     setSaving(false);
@@ -395,6 +407,20 @@ export const EditClientModal = ({ client, onClose, onUpdated, onDeleted }) => {
           <div>
             <label style={labelStyle}>Closing Date</label>
             <input style={inputStyle} type="date" value={form.closing_date} onChange={(e) => set("closing_date", e.target.value)} />
+          </div>
+          <div style={{ gridColumn: "1/-1" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, paddingTop: 4 }}>
+              <div style={{ width: 4, height: 14, borderRadius: 2, background: THEME.CYAN }} />
+              <span style={{ fontSize: 10, color: THEME.CYAN, textTransform: "uppercase", letterSpacing: 1.8, fontWeight: 700 }}>Transaction Timeline (ASIS-6)</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              {TIMELINE_FIELDS.filter((f) => f.key !== "closing_date").map(({ key, label }) => (
+                <div key={key}>
+                  <label style={labelStyle}>{label}</label>
+                  <input style={inputStyle} type="date" value={form[key]} onChange={(e) => set(key, e.target.value)} />
+                </div>
+              ))}
+            </div>
           </div>
           <div style={{ gridColumn: "1/-1" }}>
             <label style={labelStyle}>Action Trajectory</label>

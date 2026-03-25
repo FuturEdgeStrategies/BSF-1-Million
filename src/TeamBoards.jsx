@@ -4,7 +4,7 @@ import {
   AlertCircle, Flag, TrendingUp, FileText, Shield, Home, Briefcase,
   ArrowRight, Star, Crown, ChevronDown, ChevronUp, Phone, StickyNote,
 } from "lucide-react";
-import { THEME, glassCard, getSOP, getProgress, formatCurrency, agentName, calculateCommission, PRIORITY_COLORS, STATUS_CONFIG } from "./theme";
+import { THEME, glassCard, getSOP, getProgress, formatCurrency, agentName, calculateCommission, PRIORITY_COLORS, STATUS_CONFIG, TIMELINE_FIELDS, UNDER_CONTRACT_STAGES, getDateStatus } from "./theme";
 
 // ═══════════════════════════════════════════════════
 // SHARED COMPONENTS
@@ -134,6 +134,27 @@ const MiniClientRow = ({ client, accent, tasks }) => {
               {client.notes || "No notes documented yet."}
             </div>
           </div>
+
+          {/* Transaction Timeline */}
+          {UNDER_CONTRACT_STAGES.includes(client.stage) && (
+            <div style={{ background: "rgba(0,0,0,0.3)", padding: "12px 16px", borderRadius: 10, borderLeft: `3px solid ${THEME.CYAN}`, marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+                <Calendar size={11} color={THEME.CYAN} />
+                <span style={{ fontSize: 10, color: THEME.CYAN, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: 700 }}>Transaction Timeline</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {TIMELINE_FIELDS.map(({ key, label }) => {
+                  const status = getDateStatus(client[key]);
+                  return (
+                    <div key={key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0", borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+                      <span style={{ fontSize: 12, color: THEME.TEXT_DIM, fontWeight: 500 }}>{label}</span>
+                      <span style={{ fontSize: 12, color: status.color, fontWeight: status.urgent ? 700 : 500, fontFamily: "'Space Grotesk'" }}>{status.text}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Client Tasks */}
           {clientTasks.length > 0 && (

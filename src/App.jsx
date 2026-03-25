@@ -5,7 +5,7 @@ import {
   CheckCircle2, Circle, Plus, LayoutDashboard, ListTodo,
   Briefcase, Shield, Bot, Pencil,
 } from "lucide-react";
-import { THEME, AGENTS, getSOP, getProgress, glassCard, formatCurrency, agentName, calculateCommission } from "./theme";
+import { THEME, AGENTS, getSOP, getProgress, glassCard, formatCurrency, agentName, calculateCommission, TIMELINE_FIELDS, UNDER_CONTRACT_STAGES, getDateStatus } from "./theme";
 import { supabase } from "./supabaseClient";
 import { AddClientModal, AddTaskModal, EditClientModal, EditTaskModal } from "./Modals";
 import TaskHub from "./TaskHub";
@@ -498,6 +498,25 @@ export default function DealCommandCenter() {
                                   <div style={{ fontSize: 10, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 6, fontWeight: 700 }}>Strategic Notes</div>
                                   <div style={{ fontSize: 13, color: THEME.WHITE, lineHeight: 1.65 }}>{client.notes || "No notes documented yet."}</div>
                                 </div>
+                                {UNDER_CONTRACT_STAGES.includes(client.stage) && (
+                                  <div style={{ marginTop: 18, padding: "14px 16px", borderRadius: 10, background: "rgba(0,0,0,0.3)", borderLeft: `3px solid ${THEME.CYAN}` }}>
+                                    <div style={{ fontSize: 10, color: THEME.CYAN, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                                      <CalendarIcon size={11} color={THEME.CYAN} />
+                                      Transaction Timeline
+                                    </div>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                                      {TIMELINE_FIELDS.map(({ key, label }) => {
+                                        const status = getDateStatus(client[key]);
+                                        return (
+                                          <div key={key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0", borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+                                            <span style={{ fontSize: 12, color: THEME.TEXT_DIM, fontWeight: 500 }}>{label}</span>
+                                            <span style={{ fontSize: 12, color: status.color, fontWeight: status.urgent ? 700 : 500, fontFamily: "'Space Grotesk'" }}>{status.text}</span>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                )}
                                 {(() => {
                                   const comm = calculateCommission(client);
                                   if (!comm) return null;
