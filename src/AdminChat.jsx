@@ -168,6 +168,26 @@ const ADMIN_TOOLS = [
       parameters: { type: "object", properties: {} },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "create_event",
+      description: "Create a calendar event. Use when user mentions scheduling, open houses, showings, meetings, deadlines, etc.",
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string", description: "Event title" },
+          event_date: { type: "string", description: "Date in YYYY-MM-DD format" },
+          time_start: { type: "string", description: "Start time like '11:00 AM'" },
+          time_end: { type: "string", description: "End time like '2:00 PM'" },
+          location: { type: "string", description: "Event location/address" },
+          notes: { type: "string" },
+          client_id: { type: "string", description: "Client UUID if event is linked to a client" },
+        },
+        required: ["title", "event_date"],
+      },
+    },
+  },
 ];
 
 const SYSTEM_PROMPT = `You are BSF Command Center AI — Sheba's personal real estate operations assistant for Burley Sells Florida.
@@ -179,6 +199,7 @@ You have FULL CONTROL over the deal pipeline. You can:
 4. Update any task field (title, assignee, priority, due date, status)
 5. Search clients by name, type, stage, or agent
 6. Provide pipeline summaries and strategic advice
+7. Create calendar events (open houses, showings, meetings, deadlines)
 
 TEAM:
 - Sheba (owner/broker/lead agent) — ALL tasks default to Sheba unless specified otherwise
@@ -289,6 +310,14 @@ async function execAdminFn(name, args, clients, tasks) {
         `By Agent: ${Object.entries(byAgent).map(([k, v]) => `${k}: ${v}`).join(", ") || "none"}`,
         `Under Contract: ${c.filter((x) => x.stage === "Under Contract").length}`,
       ].join("\n");
+    }
+    case "create_event": {
+      const { title, event_date, time_start, time_end, location, notes, client_id } = args;
+      const { error } = await supabase.from("events").insert({
+        title, event_date, time_start: time_start || null, time_end: time_end || null,
+        location: location || null, notes: notes || null, client_id: client_id || null,
+      });
+      return error ? `Error: ${error.message}` : `Event "${title}" created for ${event_date}${time_start ? ` at ${time_start}` : ""}${location ? ` — ${location}` : ""}.`;
     }
     default:
       return "Unknown function.";

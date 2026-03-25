@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import {
-  Activity, DollarSign, Zap, Calendar, User, ChevronRight,
+  Activity, DollarSign, Zap, Calendar as CalendarIcon, User, ChevronRight,
   CheckCircle2, Circle, Plus, LayoutDashboard, ListTodo,
   Briefcase, Shield, Bot, Pencil,
 } from "lucide-react";
@@ -12,6 +12,7 @@ import TaskHub from "./TaskHub";
 import AIChatWindow from "./AIChatWindow";
 import { BobBoard, AmberBoard, ClientAvatar } from "./TeamBoards";
 import AdminChat from "./AdminChat";
+import CalendarView from "./Calendar";
 
 // ═══════════════════════════════════════════════════
 // SUB-COMPONENTS
@@ -92,6 +93,7 @@ const TABS = [
   { id: "tasks",     label: "Task Hub",   icon: <ListTodo size={15} /> },
   { id: "bob",       label: "Bob Dean",   icon: <Briefcase size={15} /> },
   { id: "amber",     label: "Amber — TC", icon: <Shield size={15} /> },
+  { id: "calendar",  label: "Calendar",   icon: <CalendarIcon size={15} /> },
   { id: "command",   label: "Command",    icon: <Bot size={15} /> },
 ];
 
@@ -101,6 +103,7 @@ const TABS = [
 export default function DealCommandCenter() {
   const [clients, setClients] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [activeAgent, setActiveAgent] = useState("all");
@@ -124,29 +127,36 @@ export default function DealCommandCenter() {
     if (!error && data) setTasks(data);
   }, []);
 
+  const fetchEvents = useCallback(async () => {
+    const { data, error } = await supabase.from("events").select("*").order("event_date", { ascending: true });
+    if (!error && data) setEvents(data);
+  }, []);
+
   const refreshAll = useCallback(() => {
     fetchClients();
     fetchTasks();
-  }, [fetchClients, fetchTasks]);
+    fetchEvents();
+  }, [fetchClients, fetchTasks, fetchEvents]);
 
   // ── Initial Load + Realtime ──
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      await Promise.all([fetchClients(), fetchTasks()]);
+      await Promise.all([fetchClients(), fetchTasks(), fetchEvents()]);
       setLoading(false);
     };
     load();
-  }, [fetchClients, fetchTasks]);
+  }, [fetchClients, fetchTasks, fetchEvents]);
 
   useEffect(() => {
     const channel = supabase
       .channel("realtime-sync")
       .on("postgres_changes", { event: "*", schema: "public", table: "clients" }, () => fetchClients())
       .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, () => fetchTasks())
+      .on("postgres_changes", { event: "*", schema: "public", table: "events" }, () => fetchEvents())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [fetchClients, fetchTasks]);
+  }, [fetchClients, fetchTasks, fetchEvents]);
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
@@ -336,7 +346,7 @@ export default function DealCommandCenter() {
                 <KpiCard icon={<Activity size={20} color={THEME.GREEN} />} label="Active Deals" value={filteredClients.length} valueColor={THEME.WHITE} accentColor={THEME.GREEN} delay={0} />
                 <KpiCard icon={<DollarSign size={20} color={THEME.GOLD} />} label="Pipeline Volume" value={totalPipelineValue > 0 ? formatCurrency(totalPipelineValue) : "—"} valueColor={THEME.GOLD} accentColor={THEME.GOLD} delay={0.05} />
                 <KpiCard icon={<Zap size={20} color={THEME.CYAN} />} label="Under Contract" value={filteredClients.filter((c) => c.stage === "Under Contract").length} valueColor={THEME.CYAN} accentColor={THEME.CYAN} delay={0.1} />
-                <KpiCard icon={<Calendar size={20} color={THEME.ORANGE} />} label="Closing Soon" value={closingSoonCount} valueColor={THEME.ORANGE} accentColor={THEME.ORANGE} delay={0.15} />
+                <KpiCard icon={<CalendarIcon size={20} color={THEME.ORANGE} />} label="Closing Soon" value={closingSoonCount} valueColor={THEME.ORANGE} accentColor={THEME.ORANGE} delay={0.15} />
               </div>
 
               {/* Chart */}
@@ -571,6 +581,9 @@ export default function DealCommandCenter() {
 
           {/* ── AMBER TAB ── */}
           {activeTab === "amber" && <AmberBoard clients={clients} tasks={tasks} />}
+
+          {/* ── CALENDAR TAB ── */}
+          {activeTab === "calendar" && <CalendarView events={events} clients={clients} />}
 
           {/* ── COMMAND CENTER TAB ── */}
           {activeTab === "command" && <AdminChat clients={clients} tasks={tasks} onRefresh={refreshAll} />}

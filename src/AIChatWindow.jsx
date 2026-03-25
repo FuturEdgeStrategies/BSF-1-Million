@@ -69,6 +69,26 @@ const AI_TOOLS = [
       parameters: { type: "object", properties: {} },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "create_event",
+      description: "Create a calendar event. Use for scheduling open houses, showings, meetings, closings, etc.",
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string", description: "Event title" },
+          event_date: { type: "string", description: "Date in YYYY-MM-DD format" },
+          time_start: { type: "string", description: "Start time like '11:00 AM'" },
+          time_end: { type: "string", description: "End time like '2:00 PM'" },
+          location: { type: "string", description: "Event location/address" },
+          notes: { type: "string" },
+          client_id: { type: "string", description: "Client UUID if linked to a client" },
+        },
+        required: ["title", "event_date"],
+      },
+    },
+  },
 ];
 
 const SYSTEM_PROMPT = `You are BSF Deal Assistant — an expert real estate AI for Burley Sells Florida's Deal Command Center.
@@ -148,6 +168,14 @@ async function execFunction(name, args, clients) {
         `Under Contract: ${c.filter((x) => x.stage === "Under Contract").length}`,
       ].join("\n");
       return summary;
+    }
+    case "create_event": {
+      const { title, event_date, time_start, time_end, location, notes, client_id } = args;
+      const { error } = await supabase.from("events").insert({
+        title, event_date, time_start: time_start || null, time_end: time_end || null,
+        location: location || null, notes: notes || null, client_id: client_id || null,
+      });
+      return error ? `Error: ${error.message}` : `Event "${title}" created for ${event_date}${time_start ? ` at ${time_start}` : ""}${location ? ` — ${location}` : ""}.`;
     }
     default:
       return "Unknown function.";
