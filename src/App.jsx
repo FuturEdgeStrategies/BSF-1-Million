@@ -30,15 +30,15 @@ const TypeBadge = ({ type }) => {
 };
 
 const KpiCard = ({ icon, label, value, valueColor, accentColor, delay = 0 }) => (
-  <div style={{ ...glassCard({ padding: 28, boxShadow: "0 10px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)", position: "relative", overflow: "hidden", animation: `cardEntrance 0.4s ease-out ${delay}s both` }) }}>
-    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${accentColor ?? THEME.GOLD}, transparent)`, animation: "borderGlow 3s ease-in-out infinite" }} />
+  <div style={{ ...glassCard({ padding: 28, boxShadow: `0 10px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06), 0 0 24px ${accentColor ?? THEME.GOLD}08`, position: "relative", overflow: "hidden", animation: `cardEntrance 0.4s ease-out ${delay}s both` }) }}>
+    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, transparent, ${accentColor ?? THEME.GOLD}CC, transparent)`, animation: "borderGlow 3s ease-in-out infinite" }} />
     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
       <div style={{ width: 38, height: 38, borderRadius: 10, background: `${accentColor ?? THEME.GOLD}18`, border: `1px solid ${accentColor ?? THEME.GOLD}30`, display: "flex", alignItems: "center", justifyContent: "center" }}>
         {icon}
       </div>
       <span style={{ fontSize: 11, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 600 }}>{label}</span>
     </div>
-    <div style={{ fontSize: 40, fontWeight: 700, color: valueColor ?? THEME.WHITE, lineHeight: 1, fontFamily: "'Space Grotesk', sans-serif", textShadow: `0 0 24px ${valueColor ?? THEME.GOLD_GLOW}` }}>
+    <div style={{ fontSize: 40, fontWeight: 700, color: valueColor ?? THEME.WHITE, lineHeight: 1, fontFamily: "'Space Grotesk', sans-serif", letterSpacing: -1, textShadow: `0 0 24px ${valueColor ?? THEME.GOLD_GLOW}` }}>
       {value}
     </div>
   </div>
@@ -344,11 +344,14 @@ export default function DealCommandCenter() {
               </div>
 
               {/* KPI Row */}
-              <div className="bsf-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20, marginBottom: 28 }}>
+              <div style={{ position: "relative" }}>
+                <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "80%", height: "150%", background: `radial-gradient(ellipse at center, ${THEME.GOLD}08 0%, transparent 70%)`, pointerEvents: "none", zIndex: 0 }} />
+              <div className="bsf-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20, marginBottom: 28, position: "relative", zIndex: 1 }}>
                 <KpiCard icon={<Activity size={20} color={THEME.GREEN} />} label="Active Deals" value={filteredClients.length} valueColor={THEME.WHITE} accentColor={THEME.GREEN} delay={0} />
                 <KpiCard icon={<DollarSign size={20} color={THEME.GOLD} />} label="Pipeline Volume" value={totalPipelineValue > 0 ? formatCurrency(totalPipelineValue) : "—"} valueColor={THEME.GOLD} accentColor={THEME.GOLD} delay={0.05} />
                 <KpiCard icon={<Zap size={20} color={THEME.CYAN} />} label="Under Contract" value={filteredClients.filter((c) => c.stage === "Under Contract").length} valueColor={THEME.CYAN} accentColor={THEME.CYAN} delay={0.1} />
                 <KpiCard icon={<CalendarIcon size={20} color={THEME.ORANGE} />} label="Closing Soon" value={closingSoonCount} valueColor={THEME.ORANGE} accentColor={THEME.ORANGE} delay={0.15} />
+              </div>
               </div>
 
               {/* Chart */}
@@ -384,7 +387,7 @@ export default function DealCommandCenter() {
               {/* Client Portfolio */}
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, paddingBottom: 14, borderBottom: `1px solid ${THEME.GLASS_BORDER}` }}>
-                  <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: THEME.WHITE, fontFamily: "'Space Grotesk'", textTransform: "uppercase", letterSpacing: 1.2 }}>Client Portfolio</h2>
+                  <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: THEME.WHITE, fontFamily: "'Space Grotesk'", textTransform: "uppercase", letterSpacing: -0.5 }}>Client Portfolio</h2>
                   <span style={{ fontSize: 11, fontWeight: 600, color: THEME.TEXT_DIM, background: "rgba(255,255,255,0.05)", padding: "4px 12px", borderRadius: 20, border: `1px solid ${THEME.GLASS_BORDER}` }}>
                     {filteredClients.length} records
                   </span>

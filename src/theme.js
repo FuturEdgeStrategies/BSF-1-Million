@@ -118,10 +118,10 @@ export const AGENTS = [
 
 // ── GLASS CARD STYLE ──
 export const glassCard = (extra = {}) => ({
-  background: "linear-gradient(135deg, rgba(15,30,53,0.8) 0%, rgba(9,23,40,0.9) 100%)",
-  backdropFilter: "blur(20px)",
-  WebkitBackdropFilter: "blur(20px)",
-  border: `1px solid ${THEME.GLASS_BORDER}`,
+  background: "linear-gradient(135deg, rgba(10,22,40,0.88) 0%, rgba(6,15,28,0.95) 100%)",
+  backdropFilter: "blur(24px)",
+  WebkitBackdropFilter: "blur(24px)",
+  border: `1px solid rgba(255,255,255,0.08)`,
   borderRadius: 16,
   ...extra,
 });
