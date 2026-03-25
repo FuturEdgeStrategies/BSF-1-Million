@@ -109,7 +109,7 @@ export const AddClientModal = ({ onClose, onAdded }) => {
 
   return (
     <div style={modalOverlay} onClick={onClose}>
-      <form onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} style={modalCard(520)}>
+      <form className="bsf-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} style={modalCard(520)}>
         {modalHeader("Add New Client")(onClose)}
         <ErrorBanner error={error} />
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, marginBottom: 20 }}>
@@ -199,7 +199,7 @@ export const AddTaskModal = ({ onClose, onAdded, clients }) => {
 
   return (
     <div style={modalOverlay} onClick={onClose}>
-      <form onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} style={modalCard(480)}>
+      <form className="bsf-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} style={modalCard(480)}>
         {modalHeader("Add New Task")(onClose)}
         <ErrorBanner error={error} />
         <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 24 }}>
@@ -296,7 +296,7 @@ export const EditClientModal = ({ client, onClose, onUpdated, onDeleted }) => {
 
   return (
     <div style={modalOverlay} onClick={onClose}>
-      <form onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} style={modalCard(520)}>
+      <form className="bsf-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} style={modalCard(520)}>
         {modalHeader("Edit Client")(onClose)}
         <ErrorBanner error={error} />
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, marginBottom: 20 }}>
@@ -412,7 +412,7 @@ export const EditTaskModal = ({ task, clients, onClose, onUpdated, onDeleted }) 
 
   return (
     <div style={modalOverlay} onClick={onClose}>
-      <form onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} style={modalCard(480)}>
+      <form className="bsf-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} style={modalCard(480)}>
         {modalHeader("Edit Task")(onClose)}
         <ErrorBanner error={error} />
         <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 24 }}>

@@ -170,3 +170,101 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(0.7);
   cursor: pointer;
 }
+
+/* ══════════════════════════════════════════════════
+   RESPONSIVE — TABLET (≤ 768px)
+   ══════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .bsf-header {
+    flex-wrap: wrap !important;
+    height: auto !important;
+    padding: 12px 16px !important;
+    gap: 10px !important;
+  }
+  .bsf-logo-section {
+    order: 1 !important;
+    flex: 1 !important;
+  }
+  .bsf-header-actions {
+    order: 2 !important;
+  }
+  .bsf-tabs {
+    order: 3 !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    justify-content: flex-start !important;
+  }
+  .bsf-tabs::-webkit-scrollbar { display: none; }
+  .bsf-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .bsf-two-col {
+    grid-template-columns: 1fr !important;
+  }
+  .bsf-content {
+    padding: 20px 16px 100px !important;
+  }
+  .bsf-client-detail {
+    grid-template-columns: 1fr !important;
+  }
+  .bsf-client-row {
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+  }
+  .bsf-client-row > div:first-child {
+    flex: 1 1 100% !important;
+  }
+  .bsf-modal {
+    width: calc(100vw - 32px) !important;
+    max-width: 520px !important;
+    padding: 24px !important;
+  }
+  .bsf-filter-bar {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+  .bsf-floating-chat {
+    width: calc(100vw - 24px) !important;
+    height: 70vh !important;
+    right: 12px !important;
+    bottom: 12px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   RESPONSIVE — MOBILE (≤ 480px)
+   ══════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .bsf-header {
+    padding: 10px 12px !important;
+  }
+  .bsf-tab-btn {
+    padding: 6px 10px !important;
+    font-size: 10px !important;
+  }
+  .bsf-tab-label {
+    display: none !important;
+  }
+  .bsf-content {
+    padding: 12px 10px 100px !important;
+  }
+  .bsf-modal {
+    width: calc(100vw - 16px) !important;
+    max-height: 92vh !important;
+    padding: 18px !important;
+  }
+  .bsf-floating-chat {
+    width: calc(100vw - 16px) !important;
+    height: 80vh !important;
+    right: 8px !important;
+    bottom: 8px !important;
+    border-radius: 16px !important;
+  }
+  .bsf-header-actions button {
+    padding: 6px 10px !important;
+    font-size: 10px !important;
+  }
+}

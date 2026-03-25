@@ -222,7 +222,7 @@ export default function DealCommandCenter() {
       {toast && <Toast message={toast.message} type={toast.type} onDone={() => setToast(null)} />}
 
       {/* ══════════ HEADER ══════════ */}
-      <header style={{
+      <header className="bsf-header" style={{
         padding: "0 40px", height: 72,
         borderBottom: `1px solid ${THEME.GLASS_BORDER}`,
         background: "linear-gradient(180deg, rgba(5,10,18,0.97) 0%, rgba(5,10,18,0.88) 100%)",
@@ -232,7 +232,7 @@ export default function DealCommandCenter() {
         boxShadow: `0 1px 0 ${THEME.GOLD}20, 0 4px 32px rgba(0,0,0,0.5)`,
       }}>
         {/* LEFT: Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <div className="bsf-logo-section" style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <img
             src="/logo.png.png"
             alt="Burley Sells Florida"
@@ -250,10 +250,11 @@ export default function DealCommandCenter() {
         </div>
 
         {/* CENTER: Tabs */}
-        <div style={{ display: "flex", gap: 2, background: "rgba(255,255,255,0.03)", padding: "5px 6px", borderRadius: 12, border: `1px solid ${THEME.GLASS_BORDER}` }}>
+        <div className="bsf-tabs" style={{ display: "flex", gap: 2, background: "rgba(255,255,255,0.03)", padding: "5px 6px", borderRadius: 12, border: `1px solid ${THEME.GLASS_BORDER}` }}>
           {TABS.map((tab) => (
             <button
               key={tab.id}
+              className="bsf-tab-btn"
               onClick={() => setActiveTab(tab.id)}
               style={{
                 padding: "7px 18px", borderRadius: 8,
@@ -267,13 +268,13 @@ export default function DealCommandCenter() {
               }}
             >
               {tab.icon}
-              {tab.label}
+              <span className="bsf-tab-label">{tab.label}</span>
             </button>
           ))}
         </div>
 
         {/* RIGHT: Actions */}
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="bsf-header-actions" style={{ display: "flex", gap: 8 }}>
           <button
             onClick={() => setShowAddClient(true)}
             style={{
@@ -309,7 +310,7 @@ export default function DealCommandCenter() {
       {loading ? (
         <LoadingSkeleton />
       ) : (
-        <div style={{ padding: "32px 40px 120px", maxWidth: 1440, margin: "0 auto" }}>
+        <div className="bsf-content" style={{ padding: "32px 40px 120px", maxWidth: 1440, margin: "0 auto" }}>
 
           {/* ── DASHBOARD TAB ── */}
           {activeTab === "dashboard" && (
@@ -331,7 +332,7 @@ export default function DealCommandCenter() {
               </div>
 
               {/* KPI Row */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20, marginBottom: 28 }}>
+              <div className="bsf-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20, marginBottom: 28 }}>
                 <KpiCard icon={<Activity size={20} color={THEME.GREEN} />} label="Active Deals" value={filteredClients.length} valueColor={THEME.WHITE} accentColor={THEME.GREEN} delay={0} />
                 <KpiCard icon={<DollarSign size={20} color={THEME.GOLD} />} label="Pipeline Volume" value={totalPipelineValue > 0 ? formatCurrency(totalPipelineValue) : "—"} valueColor={THEME.GOLD} accentColor={THEME.GOLD} delay={0.05} />
                 <KpiCard icon={<Zap size={20} color={THEME.CYAN} />} label="Under Contract" value={filteredClients.filter((c) => c.stage === "Under Contract").length} valueColor={THEME.CYAN} accentColor={THEME.CYAN} delay={0.1} />
@@ -408,6 +409,7 @@ export default function DealCommandCenter() {
                                 transition: "all 0.25s ease",
                               }),
                             }}
+                            className="bsf-client-row"
                           >
                             <div style={{ flex: "0 0 220px" }}>
                               <div style={{ fontSize: 15, fontWeight: 600, color: THEME.WHITE, marginBottom: 8, display: "flex", alignItems: "center", gap: 8, fontFamily: "'Space Grotesk'" }}>
@@ -453,7 +455,7 @@ export default function DealCommandCenter() {
 
                           {/* Expanded Detail */}
                           {isSelected && (
-                            <div style={{
+                            <div className="bsf-client-detail" style={{
                               ...glassCard({
                                 border: `1px solid ${THEME.GOLD}50`, borderTop: "none",
                                 borderRadius: "0 0 16px 16px", padding: 32,

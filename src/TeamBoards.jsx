@@ -237,14 +237,14 @@ export const BobBoard = ({ clients, tasks }) => {
       </div>
 
       {/* KPI Row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
+      <div className="bsf-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
         <StatCard icon={<Target size={18} color={THEME.GREEN} />} label="Active Deals" value={bobClients.length} color={THEME.WHITE} accent={THEME.GREEN} />
         <StatCard icon={<DollarSign size={18} color={THEME.GOLD} />} label="Pipeline Value" value={formatCurrency(totalValue)} color={THEME.GOLD} accent={THEME.GOLD} />
         <StatCard icon={<FileText size={18} color={THEME.CYAN} />} label="Under Contract" value={underContract.length} color={THEME.CYAN} accent={THEME.CYAN} />
         <StatCard icon={<AlertCircle size={18} color={overdueTasks.length > 0 ? THEME.RED : THEME.GREEN} />} label="Overdue Tasks" value={overdueTasks.length} color={overdueTasks.length > 0 ? THEME.RED : THEME.GREEN} accent={overdueTasks.length > 0 ? THEME.RED : THEME.GREEN} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+      <div className="bsf-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
         {/* Left: Pipeline by Type */}
         <div>
           {/* Buyers */}
@@ -387,14 +387,14 @@ export const AmberBoard = ({ clients, tasks }) => {
       </div>
 
       {/* KPI Row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
+      <div className="bsf-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
         <StatCard icon={<FileText size={18} color={THEME.PURPLE} />} label="Active Files" value={amberClients.length} color={THEME.WHITE} accent={THEME.PURPLE} />
         <StatCard icon={<Shield size={18} color={THEME.ORANGE} />} label="In Compliance" value={stageGroups["Compliance"].length} color={THEME.ORANGE} accent={THEME.ORANGE} />
         <StatCard icon={<CheckCircle2 size={18} color={THEME.GREEN} />} label="Ready to Close" value={stageGroups["Ready to Close"].length} color={THEME.GREEN} accent={THEME.GREEN} />
         <StatCard icon={<AlertCircle size={18} color={urgentTasks.length > 0 ? THEME.RED : THEME.GREEN} />} label="Urgent Tasks" value={urgentTasks.length} color={urgentTasks.length > 0 ? THEME.RED : THEME.GREEN} accent={urgentTasks.length > 0 ? THEME.RED : THEME.GREEN} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 24 }}>
+      <div className="bsf-two-col" style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 24 }}>
         {/* Left: Compliance Pipeline */}
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: THEME.WHITE, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
@@ -540,14 +540,14 @@ export const ShebaBoard = ({ clients, tasks }) => {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
+      <div className="bsf-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
         <StatCard icon={<Target size={18} color={THEME.GREEN} />} label="My Deals" value={shebaClients.length} color={THEME.WHITE} accent={THEME.GREEN} />
         <StatCard icon={<DollarSign size={18} color={THEME.GOLD} />} label="Pipeline Value" value={formatCurrency(totalValue)} color={THEME.GOLD} accent={THEME.GOLD} />
         <StatCard icon={<FileText size={18} color={THEME.CYAN} />} label="Under Contract" value={underContract.length} color={THEME.CYAN} accent={THEME.CYAN} />
         <StatCard icon={<AlertCircle size={18} color={overdueTasks.length > 0 ? THEME.RED : THEME.GREEN} />} label="Overdue Tasks" value={overdueTasks.length} color={overdueTasks.length > 0 ? THEME.RED : THEME.GREEN} accent={overdueTasks.length > 0 ? THEME.RED : THEME.GREEN} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+      <div className="bsf-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
         <div>
           {sections.map(({ label, items, icon, accent }) =>
             items.length > 0 ? (

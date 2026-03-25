@@ -317,6 +317,7 @@ const AIChatWindow = ({ clients, tasks, onRefresh }) => {
   // ── Open State: Chat Window ──
   return (
     <div
+      className="bsf-floating-chat"
       style={{
         position: "fixed", bottom: 28, right: 28, width: 420, height: 560,
         borderRadius: 20, overflow: "hidden",

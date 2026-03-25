@@ -202,7 +202,7 @@ const TaskHub = ({ tasks, clients, onRefresh, onEditTask }) => {
       </div>
 
       {/* ── KPI Strip ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+      <div className="bsf-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
           { label: "My Tasks", value: counts.total, color: THEME.WHITE, accent: THEME.GOLD },
           { label: "Active", value: counts.active, color: THEME.BLUE, accent: THEME.BLUE },
@@ -218,7 +218,7 @@ const TaskHub = ({ tasks, clients, onRefresh, onEditTask }) => {
       </div>
 
       {/* ── Filter Bar ── */}
-      <div style={{ ...glassCard({ padding: "12px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }) }}>
+      <div className="bsf-filter-bar" style={{ ...glassCard({ padding: "12px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }) }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, color: THEME.TEXT_DIM }}>
           <Filter size={14} />
           <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.5 }}>Filters</span>
