@@ -10,7 +10,7 @@ import { supabase } from "./supabaseClient";
 import { AddClientModal, AddTaskModal, EditClientModal, EditTaskModal } from "./Modals";
 import TaskHub from "./TaskHub";
 import AIChatWindow from "./AIChatWindow";
-import { BobBoard, AmberBoard } from "./TeamBoards";
+import { BobBoard, AmberBoard, ClientAvatar } from "./TeamBoards";
 import AdminChat from "./AdminChat";
 
 // ═══════════════════════════════════════════════════
@@ -413,9 +413,7 @@ export default function DealCommandCenter() {
                           >
                             <div style={{ flex: "0 0 220px" }}>
                               <div style={{ fontSize: 15, fontWeight: 600, color: THEME.WHITE, marginBottom: 8, display: "flex", alignItems: "center", gap: 8, fontFamily: "'Space Grotesk'" }}>
-                                <div style={{ width: 30, height: 30, borderRadius: 8, background: `${THEME.GOLD}18`, border: `1px solid ${THEME.GOLD}30`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                  <User size={14} color={THEME.GOLD} />
-                                </div>
+                                <ClientAvatar client={client} size={30} accent={THEME.GOLD} />
                                 {client.name}
                               </div>
                               <TypeBadge type={client.type} />

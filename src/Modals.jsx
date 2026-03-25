@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Trash2, CheckCircle2, Circle } from "lucide-react";
+import { X, Trash2, CheckCircle2, Circle, Camera, Loader } from "lucide-react";
 import { THEME, glassCard, getSOP } from "./theme";
 import { supabase } from "./supabaseClient";
 
@@ -258,9 +258,11 @@ export const EditClientModal = ({ client, onClose, onUpdated, onDeleted }) => {
     notes: client.notes || "",
     commission_rate: client.commission_rate || 0.03,
     commission_split: client.commission_split || "solo",
+    avatar_url: client.avatar_url || "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
@@ -279,6 +281,7 @@ export const EditClientModal = ({ client, onClose, onUpdated, onDeleted }) => {
         closing_date: form.closing_date || null,
         commission_rate: parseFloat(form.commission_rate) || 0.03,
         commission_split: form.commission_split || "solo",
+        avatar_url: form.avatar_url || null,
       })
       .eq("id", client.id);
     setSaving(false);
@@ -303,6 +306,49 @@ export const EditClientModal = ({ client, onClose, onUpdated, onDeleted }) => {
       <form className="bsf-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} style={modalCard(520)}>
         {modalHeader("Edit Client")(onClose)}
         <ErrorBanner error={error} />
+
+        {/* Avatar Upload */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24, paddingBottom: 20, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ position: "relative" }}>
+            {form.avatar_url ? (
+              <img src={form.avatar_url} alt="Avatar" style={{ width: 64, height: 64, borderRadius: 18, objectFit: "cover", border: `2px solid ${THEME.GOLD}40` }} />
+            ) : (
+              <div style={{ width: 64, height: 64, borderRadius: 18, background: `${THEME.GOLD}15`, border: `2px dashed ${THEME.GOLD}30`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Camera size={22} color={THEME.TEXT_DIM} />
+              </div>
+            )}
+          </div>
+          <div>
+            <label style={{ ...labelStyle, marginBottom: 8 }}>Client Photo</label>
+            <label style={{
+              display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 16px",
+              borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: uploading ? "wait" : "pointer",
+              background: `${THEME.GOLD}15`, border: `1px solid ${THEME.GOLD}30`, color: THEME.GOLD,
+              fontFamily: "'Space Grotesk'", transition: "all 0.2s",
+            }}>
+              {uploading ? <Loader size={14} style={{ animation: "spinIn 0.6s linear infinite" }} /> : <Camera size={14} />}
+              {uploading ? "Uploading..." : "Upload Photo"}
+              <input type="file" accept="image/*" style={{ display: "none" }} disabled={uploading} onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setUploading(true);
+                const ext = file.name.split(".").pop();
+                const path = `${client.id}-${Date.now()}.${ext}`;
+                const { error: uploadErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+                if (uploadErr) { setError(uploadErr.message); setUploading(false); return; }
+                const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+                set("avatar_url", urlData.publicUrl);
+                setUploading(false);
+              }} />
+            </label>
+            {form.avatar_url && (
+              <button type="button" onClick={() => set("avatar_url", "")} style={{ marginLeft: 8, background: "none", border: "none", color: THEME.RED, fontSize: 11, cursor: "pointer", fontFamily: "'Space Grotesk'" }}>
+                Remove
+              </button>
+            )}
+          </div>
+        </div>
+
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, marginBottom: 20 }}>
           <div style={{ gridColumn: "1/-1" }}>
             <label style={labelStyle}>Client Name *</label>

@@ -10,6 +10,33 @@ import { THEME, glassCard, getSOP, getProgress, formatCurrency, agentName, calcu
 // SHARED COMPONENTS
 // ═══════════════════════════════════════════════════
 
+export const ClientAvatar = ({ client, size = 36, accent }) => {
+  const color = accent || THEME.GOLD;
+  if (client?.avatar_url) {
+    return (
+      <img
+        src={client.avatar_url}
+        alt={client.name}
+        style={{
+          width: size, height: size, borderRadius: size * 0.28, objectFit: "cover",
+          border: `1px solid ${color}30`, flexShrink: 0,
+        }}
+      />
+    );
+  }
+  const initials = (client?.name || "?").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: size * 0.28, flexShrink: 0,
+      background: `${color}15`, border: `1px solid ${color}30`,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: size * 0.36, fontWeight: 700, color, fontFamily: "'Space Grotesk'",
+    }}>
+      {initials}
+    </div>
+  );
+};
+
 const StatCard = ({ icon, label, value, color, accent }) => (
   <div style={{ ...glassCard({ padding: "22px 26px", position: "relative", overflow: "hidden" }) }}>
     <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${accent}, transparent)`, animation: "borderGlow 3s ease-in-out infinite" }} />
@@ -59,9 +86,7 @@ const MiniClientRow = ({ client, accent, tasks }) => {
         onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${accent}40`; }}
         onMouseLeave={(e) => { if (!expanded) e.currentTarget.style.borderColor = THEME.GLASS_BORDER; }}
       >
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: `${accent}15`, border: `1px solid ${accent}30`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <User size={16} color={accent} />
-        </div>
+        <ClientAvatar client={client} size={36} accent={accent} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: THEME.WHITE, fontFamily: "'Space Grotesk'" }}>{client.name}</div>
           <div style={{ fontSize: 11, color: THEME.TEXT_DIM, marginTop: 2 }}>{client.stage}</div>
