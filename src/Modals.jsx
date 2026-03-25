@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { X, Trash2 } from "lucide-react";
-import { THEME, glassCard } from "./theme";
+import { X, Trash2, CheckCircle2, Circle } from "lucide-react";
+import { THEME, glassCard, getSOP } from "./theme";
 import { supabase } from "./supabaseClient";
 
 const modalOverlay = {
@@ -350,9 +350,62 @@ export const EditClientModal = ({ client, onClose, onUpdated, onDeleted }) => {
             <label style={labelStyle}>Closing Date</label>
             <input style={inputStyle} type="date" value={form.closing_date} onChange={(e) => set("closing_date", e.target.value)} />
           </div>
-          <div>
-            <label style={labelStyle}>SOP Progress (Step #)</label>
-            <input style={inputStyle} type="number" min="0" max="17" value={form.sop_progress} onChange={(e) => set("sop_progress", e.target.value)} />
+          <div style={{ gridColumn: "1/-1" }}>
+            <label style={labelStyle}>Action Trajectory</label>
+            {(() => {
+              const steps = getSOP(form.type);
+              const progress = parseInt(form.sop_progress) || 0;
+              const pct = steps.length > 0 ? (progress / steps.length) * 100 : 0;
+              return (
+                <div>
+                  <div style={{ height: 6, borderRadius: 3, background: "rgba(255,255,255,0.06)", marginBottom: 12, overflow: "hidden" }}>
+                    <div style={{ height: "100%", borderRadius: 3, width: `${pct}%`, background: `linear-gradient(90deg, ${THEME.GOLD}, ${THEME.CYAN})`, transition: "width 0.3s" }} />
+                  </div>
+                  <div style={{ maxHeight: 220, overflowY: "auto", display: "flex", flexDirection: "column", gap: 2, paddingRight: 4 }}>
+                    {steps.map((s, i) => {
+                      const done = i < progress;
+                      const current = i === progress;
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => set("sop_progress", done ? i : i + 1)}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 10, padding: "8px 12px",
+                            borderRadius: 8, border: "none", cursor: "pointer", textAlign: "left", width: "100%",
+                            background: current ? `${THEME.GOLD}12` : "transparent",
+                            transition: "background 0.15s",
+                          }}
+                          onMouseEnter={(e) => { if (!current) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+                          onMouseLeave={(e) => { if (!current) e.currentTarget.style.background = "transparent"; }}
+                        >
+                          {done ? (
+                            <CheckCircle2 size={16} color={THEME.GREEN} style={{ flexShrink: 0 }} />
+                          ) : current ? (
+                            <Circle size={16} color={THEME.GOLD} style={{ flexShrink: 0, filter: `drop-shadow(0 0 4px ${THEME.GOLD})` }} />
+                          ) : (
+                            <Circle size={16} color={THEME.TEXT_DIM} style={{ flexShrink: 0, opacity: 0.4 }} />
+                          )}
+                          <span style={{
+                            fontSize: 12, fontFamily: "'Space Grotesk'", fontWeight: current ? 700 : done ? 500 : 400,
+                            color: done ? THEME.GREEN : current ? THEME.GOLD : THEME.TEXT_DIM,
+                            textDecoration: done ? "none" : "none",
+                          }}>
+                            {s.step}
+                          </span>
+                          <span style={{ marginLeft: "auto", fontSize: 9, color: THEME.TEXT_DIM, opacity: 0.6, flexShrink: 0 }}>
+                            {s.stage}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div style={{ fontSize: 10, color: THEME.TEXT_DIM, marginTop: 8 }}>
+                    Step {progress} of {steps.length} — Click to advance or revert
+                  </div>
+                </div>
+              );
+            })()}
           </div>
           <div>
             <label style={labelStyle}>Commission Rate</label>
