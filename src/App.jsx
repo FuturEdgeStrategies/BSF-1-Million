@@ -63,7 +63,7 @@ const LoadingSkeleton = () => (
 
 const Toast = ({ message, type, onDone }) => {
   useEffect(() => {
-    const t = setTimeout(onDone, 3500);
+    const t = setTimeout(onDone, 3000);
     return () => clearTimeout(t);
   }, [onDone]);
   const bg = type === "error" ? "rgba(255,59,48,0.15)" : "rgba(62,207,142,0.15)";
@@ -198,10 +198,23 @@ export default function DealCommandCenter() {
     setToast({ message: "Client updated", type: "success" });
   };
 
+  const handleClientDeleted = () => {
+    fetchClients();
+    fetchTasks();
+    setEditingClient(null);
+    setToast({ message: "Client deleted", type: "success" });
+  };
+
   const handleTaskUpdated = () => {
     fetchTasks();
     setEditingTask(null);
     setToast({ message: "Task updated", type: "success" });
+  };
+
+  const handleTaskDeleted = () => {
+    fetchTasks();
+    setEditingTask(null);
+    setToast({ message: "Task deleted", type: "success" });
   };
 
   return (
@@ -543,8 +556,8 @@ export default function DealCommandCenter() {
       {/* ── MODALS ── */}
       {showAddClient && <AddClientModal onClose={() => setShowAddClient(false)} onAdded={handleClientAdded} />}
       {showAddTask && <AddTaskModal onClose={() => setShowAddTask(false)} onAdded={handleTaskAdded} clients={clients} />}
-      {editingClient && <EditClientModal client={editingClient} onClose={() => setEditingClient(null)} onUpdated={handleClientUpdated} />}
-      {editingTask && <EditTaskModal task={editingTask} onClose={() => setEditingTask(null)} onUpdated={handleTaskUpdated} clients={clients} />}
+      {editingClient && <EditClientModal client={editingClient} onClose={() => setEditingClient(null)} onUpdated={handleClientUpdated} onDeleted={handleClientDeleted} />}
+      {editingTask && <EditTaskModal task={editingTask} onClose={() => setEditingTask(null)} onUpdated={handleTaskUpdated} onDeleted={handleTaskDeleted} clients={clients} />}
     </div>
   );
 }

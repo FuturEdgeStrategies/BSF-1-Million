@@ -242,7 +242,7 @@ export const AddTaskModal = ({ onClose, onAdded, clients }) => {
 // ═══════════════════════════════════════════════════
 // EDIT CLIENT MODAL
 // ═══════════════════════════════════════════════════
-export const EditClientModal = ({ client, onClose, onUpdated }) => {
+export const EditClientModal = ({ client, onClose, onUpdated, onDeleted }) => {
   const [form, setForm] = useState({
     name: client.name || "",
     type: client.type || "Buyer",
@@ -290,7 +290,7 @@ export const EditClientModal = ({ client, onClose, onUpdated }) => {
     const { error: err } = await supabase.from("clients").delete().eq("id", client.id);
     setSaving(false);
     if (err) { setError(err.message); return; }
-    onUpdated?.();
+    (onDeleted || onUpdated)?.();
     onClose();
   };
 
@@ -371,7 +371,7 @@ export const EditClientModal = ({ client, onClose, onUpdated }) => {
 // ═══════════════════════════════════════════════════
 // EDIT TASK MODAL
 // ═══════════════════════════════════════════════════
-export const EditTaskModal = ({ task, clients, onClose, onUpdated }) => {
+export const EditTaskModal = ({ task, clients, onClose, onUpdated, onDeleted }) => {
   const [form, setForm] = useState({
     title: task.title || "",
     client_id: task.client_id || "",
@@ -406,7 +406,7 @@ export const EditTaskModal = ({ task, clients, onClose, onUpdated }) => {
     const { error: err } = await supabase.from("tasks").delete().eq("id", task.id);
     setSaving(false);
     if (err) { setError(err.message); return; }
-    onUpdated?.();
+    (onDeleted || onUpdated)?.();
     onClose();
   };
 
