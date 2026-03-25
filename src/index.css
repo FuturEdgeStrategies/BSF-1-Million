@@ -129,6 +129,11 @@ body::before {
   50%       { opacity: 1; }
 }
 
+@keyframes logoGlow {
+  0%, 100% { filter: drop-shadow(0 0 14px rgba(201,168,76,0.5)) drop-shadow(0 0 30px rgba(201,168,76,0.2)); }
+  50%       { filter: drop-shadow(0 0 22px rgba(201,168,76,0.7)) drop-shadow(0 0 44px rgba(201,168,76,0.35)); }
+}
+
 @keyframes recording {
   0%, 100% { box-shadow: 0 0 0 0 rgba(255,59,48,0.4); }
   50%       { box-shadow: 0 0 0 12px rgba(255,59,48,0); }
@@ -247,6 +252,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   }
   .bsf-tab-label {
     display: none !important;
+  }
+  .bsf-logo-img {
+    height: 44px !important;
   }
   .bsf-content {
     padding: 12px 10px 100px !important;

@@ -233,7 +233,7 @@ export default function DealCommandCenter() {
 
       {/* ══════════ HEADER ══════════ */}
       <header className="bsf-header" style={{
-        padding: "0 40px", height: 72,
+        padding: "0 40px", height: 80,
         borderBottom: `1px solid ${THEME.GLASS_BORDER}`,
         background: "linear-gradient(180deg, rgba(5,10,18,0.97) 0%, rgba(5,10,18,0.88) 100%)",
         backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
@@ -246,16 +246,18 @@ export default function DealCommandCenter() {
           <img
             src="/logo.png.png"
             alt="Burley Sells Florida"
-            style={{ height: 48, objectFit: "contain", filter: "drop-shadow(0 0 10px rgba(201,168,76,0.4))" }}
+            className="bsf-logo-img"
+            style={{ height: 68, objectFit: "contain", filter: "drop-shadow(0 0 14px rgba(201,168,76,0.5)) drop-shadow(0 0 30px rgba(201,168,76,0.2))", animation: "logoGlow 4s ease-in-out infinite" }}
           />
           <div>
             <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: -0.3, color: THEME.WHITE, fontFamily: "'Space Grotesk'", animation: "neonFlicker 10s infinite" }}>
               Deal Command Center
             </h1>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
               <div style={{ width: 6, height: 6, borderRadius: 3, background: THEME.RED, boxShadow: `0 0 8px ${THEME.RED}`, animation: "livePulse 1.5s infinite" }} />
               <span style={{ fontSize: 10, color: THEME.GOLD, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" }}>Live · {timeStr}</span>
             </div>
+            <div style={{ fontSize: 8, color: THEME.GOLD_DIM, textTransform: "uppercase", letterSpacing: 3, marginTop: 2, fontWeight: 600 }}>Burley Sells Florida</div>
           </div>
         </div>
 
