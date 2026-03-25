@@ -5,7 +5,7 @@ import {
   CheckCircle2, Circle, Plus, LayoutDashboard, ListTodo,
   Briefcase, Shield, Bot, Pencil,
 } from "lucide-react";
-import { THEME, AGENTS, getSOP, getProgress, glassCard, formatCurrency, agentName } from "./theme";
+import { THEME, AGENTS, getSOP, getProgress, glassCard, formatCurrency, agentName, calculateCommission } from "./theme";
 import { supabase } from "./supabaseClient";
 import { AddClientModal, AddTaskModal, EditClientModal, EditTaskModal } from "./Modals";
 import TaskHub from "./TaskHub";
@@ -485,6 +485,33 @@ export default function DealCommandCenter() {
                                   <div style={{ fontSize: 10, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 6, fontWeight: 700 }}>Strategic Notes</div>
                                   <div style={{ fontSize: 13, color: THEME.WHITE, lineHeight: 1.65 }}>{client.notes || "No notes documented yet."}</div>
                                 </div>
+                                {(() => {
+                                  const comm = calculateCommission(client);
+                                  if (!comm) return null;
+                                  return (
+                                    <div style={{ marginTop: 18, padding: "14px 16px", borderRadius: 10, background: "rgba(0,0,0,0.3)", borderLeft: `3px solid ${THEME.GOLD}` }}>
+                                      <div style={{ fontSize: 10, color: THEME.GOLD, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10, fontWeight: 700 }}>Commission Breakdown</div>
+                                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px" }}>
+                                        <div>
+                                          <div style={{ fontSize: 10, color: THEME.TEXT_DIM, fontWeight: 600 }}>Gross ({(comm.rate * 100).toFixed(1)}%)</div>
+                                          <div style={{ fontSize: 13, color: THEME.WHITE, fontWeight: 600 }}>{formatCurrency(comm.grossCommission)}</div>
+                                        </div>
+                                        <div>
+                                          <div style={{ fontSize: 10, color: THEME.TEXT_DIM, fontWeight: 600 }}>Brokerage (10%)</div>
+                                          <div style={{ fontSize: 13, color: THEME.RED, fontWeight: 600 }}>-{formatCurrency(comm.brokerageCut)}</div>
+                                        </div>
+                                        <div>
+                                          <div style={{ fontSize: 10, color: THEME.TEXT_DIM, fontWeight: 600 }}>Split</div>
+                                          <div style={{ fontSize: 13, color: THEME.WHITE, fontWeight: 500 }}>{comm.splitLabel}</div>
+                                        </div>
+                                        <div>
+                                          <div style={{ fontSize: 10, color: THEME.GOLD, fontWeight: 700 }}>My Take-Home</div>
+                                          <div style={{ fontSize: 15, color: THEME.GOLD, fontWeight: 700, textShadow: `0 0 12px ${THEME.GOLD_GLOW}` }}>{formatCurrency(comm.myTakeHome)}</div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
                                 <button
                                   onClick={(e) => { e.stopPropagation(); setEditingClient(client); }}
                                   style={{

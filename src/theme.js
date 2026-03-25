@@ -144,3 +144,20 @@ export const agentName = (id) =>
   id === "bob"   ? "Bob Dean" :
   id === "amber" ? "Amber" :
   id || "—";
+
+export const calculateCommission = (client) => {
+  const contractPrice = Number(client.offer_price) || Number(client.loan_amt) || 0;
+  if (contractPrice === 0) return null;
+  const rate = Number(client.commission_rate) || 0.03;
+  const split = client.commission_split || "solo";
+  const grossCommission = contractPrice * rate;
+  const brokerageCut = grossCommission * 0.10;
+  const agentNet = grossCommission - brokerageCut;
+  let myTakeHome, splitLabel;
+  switch (split) {
+    case "50-50-bob":   myTakeHome = agentNet * 0.5; splitLabel = "50/50 with Bob"; break;
+    case "50-50-amber": myTakeHome = agentNet * 0.5; splitLabel = "50/50 with Amber"; break;
+    default:            myTakeHome = agentNet;        splitLabel = "Solo (100%)";
+  }
+  return { contractPrice, rate, grossCommission, brokerageCut, agentNet, myTakeHome, splitLabel };
+};

@@ -256,6 +256,8 @@ export const EditClientModal = ({ client, onClose, onUpdated, onDeleted }) => {
     closing_date: client.closing_date || "",
     sop_progress: client.sop_progress || 0,
     notes: client.notes || "",
+    commission_rate: client.commission_rate || 0.03,
+    commission_split: client.commission_split || "solo",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -275,6 +277,8 @@ export const EditClientModal = ({ client, onClose, onUpdated, onDeleted }) => {
         offer_price: parseFloat(form.offer_price) || 0,
         sop_progress: parseInt(form.sop_progress) || 0,
         closing_date: form.closing_date || null,
+        commission_rate: parseFloat(form.commission_rate) || 0.03,
+        commission_split: form.commission_split || "solo",
       })
       .eq("id", client.id);
     setSaving(false);
@@ -349,6 +353,19 @@ export const EditClientModal = ({ client, onClose, onUpdated, onDeleted }) => {
           <div>
             <label style={labelStyle}>SOP Progress (Step #)</label>
             <input style={inputStyle} type="number" min="0" max="17" value={form.sop_progress} onChange={(e) => set("sop_progress", e.target.value)} />
+          </div>
+          <div>
+            <label style={labelStyle}>Commission Rate</label>
+            <input style={inputStyle} type="number" step="0.005" min="0" max="0.10" value={form.commission_rate} onChange={(e) => set("commission_rate", e.target.value)} />
+            <div style={{ fontSize: 10, color: THEME.TEXT_DIM, marginTop: 3 }}>{(Number(form.commission_rate) * 100).toFixed(1)}%</div>
+          </div>
+          <div>
+            <label style={labelStyle}>Commission Split</label>
+            <select style={selectStyle} value={form.commission_split} onChange={(e) => set("commission_split", e.target.value)}>
+              <option value="solo">Solo (100%)</option>
+              <option value="50-50-bob">50/50 with Bob</option>
+              <option value="50-50-amber">50/50 with Amber</option>
+            </select>
           </div>
           <div style={{ gridColumn: "1/-1" }}>
             <label style={labelStyle}>Notes</label>

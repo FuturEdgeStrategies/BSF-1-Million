@@ -4,7 +4,7 @@ import {
   AlertCircle, Flag, TrendingUp, FileText, Shield, Home, Briefcase,
   ArrowRight, Star, Crown, ChevronDown, ChevronUp, Phone, StickyNote,
 } from "lucide-react";
-import { THEME, glassCard, getSOP, getProgress, formatCurrency, agentName, PRIORITY_COLORS, STATUS_CONFIG } from "./theme";
+import { THEME, glassCard, getSOP, getProgress, formatCurrency, agentName, calculateCommission, PRIORITY_COLORS, STATUS_CONFIG } from "./theme";
 
 // ═══════════════════════════════════════════════════
 // SHARED COMPONENTS
@@ -141,6 +141,38 @@ const MiniClientRow = ({ client, accent, tasks }) => {
               ))}
             </div>
           </div>
+
+          {/* Commission Breakdown */}
+          {(() => {
+            const comm = calculateCommission(client);
+            if (!comm) return null;
+            return (
+              <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <div style={{ fontSize: 10, color: THEME.GOLD, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: 700, marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+                  <DollarSign size={11} color={THEME.GOLD} />
+                  Commission Breakdown
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px" }}>
+                  <div>
+                    <div style={{ fontSize: 10, color: THEME.TEXT_DIM, fontWeight: 600 }}>Gross ({(comm.rate * 100).toFixed(1)}%)</div>
+                    <div style={{ fontSize: 13, color: THEME.WHITE, fontWeight: 600 }}>{formatCurrency(comm.grossCommission)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, color: THEME.TEXT_DIM, fontWeight: 600 }}>Brokerage (10%)</div>
+                    <div style={{ fontSize: 13, color: THEME.RED, fontWeight: 600 }}>-{formatCurrency(comm.brokerageCut)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, color: THEME.TEXT_DIM, fontWeight: 600 }}>Split</div>
+                    <div style={{ fontSize: 13, color: THEME.WHITE, fontWeight: 500 }}>{comm.splitLabel}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, color: THEME.GOLD, fontWeight: 700 }}>My Take-Home</div>
+                    <div style={{ fontSize: 15, color: THEME.GOLD, fontWeight: 700, textShadow: `0 0 12px ${THEME.GOLD_GLOW}` }}>{formatCurrency(comm.myTakeHome)}</div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>
