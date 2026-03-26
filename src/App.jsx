@@ -91,8 +91,8 @@ export default function DealCommandCenter() {
   const [selectedClient, setSelectedClient] = useState(null);
   const [showAddClient, setShowAddClient] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
-  const [editingClient, setEditingClient] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
+  const [activities, setActivities] = useState([]);
   const [now, setNow] = useState(new Date());
   const addToast = useToast();
 
@@ -113,21 +113,27 @@ export default function DealCommandCenter() {
     if (!error && data) setEvents(data);
   }, []);
 
+  const fetchActivities = useCallback(async () => {
+    const { data, error } = await supabase.from("activities").select("*").order("created_at", { ascending: false });
+    if (!error && data) setActivities(data);
+  }, []);
+
   const refreshAll = useCallback(() => {
     fetchClients();
     fetchTasks();
     fetchEvents();
-  }, [fetchClients, fetchTasks, fetchEvents]);
+    fetchActivities();
+  }, [fetchClients, fetchTasks, fetchEvents, fetchActivities]);
 
   // ── Initial Load + Realtime ──
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      await Promise.all([fetchClients(), fetchTasks(), fetchEvents()]);
+      await Promise.all([fetchClients(), fetchTasks(), fetchEvents(), fetchActivities()]);
       setLoading(false);
     };
     load();
-  }, [fetchClients, fetchTasks, fetchEvents]);
+  }, [fetchClients, fetchTasks, fetchEvents, fetchActivities]);
 
   useEffect(() => {
     const channel = supabase
@@ -135,9 +141,10 @@ export default function DealCommandCenter() {
       .on("postgres_changes", { event: "*", schema: "public", table: "clients" }, () => fetchClients())
       .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, () => fetchTasks())
       .on("postgres_changes", { event: "*", schema: "public", table: "events" }, () => fetchEvents())
+      .on("postgres_changes", { event: "*", schema: "public", table: "activities" }, () => fetchActivities())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [fetchClients, fetchTasks, fetchEvents]);
+  }, [fetchClients, fetchTasks, fetchEvents, fetchActivities]);
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
@@ -679,10 +686,10 @@ export default function DealCommandCenter() {
           {activeTab === "tasks" && <TaskHub tasks={tasks} clients={clients} onRefresh={fetchTasks} onEditTask={setEditingTask} />}
 
           {/* ── BOB TAB ── */}
-          {activeTab === "bob" && <BobBoard clients={clients} tasks={tasks} />}
+          {activeTab === "bob" && <BobBoard clients={clients} tasks={tasks} activities={activities} />}
 
           {/* ── AMBER TAB ── */}
-          {activeTab === "amber" && <AmberBoard clients={clients} tasks={tasks} />}
+          {activeTab === "amber" && <AmberBoard clients={clients} tasks={tasks} activities={activities} />}
 
           {/* ── CALENDAR TAB ── */}
           {activeTab === "calendar" && <CalendarView events={events} clients={clients} />}

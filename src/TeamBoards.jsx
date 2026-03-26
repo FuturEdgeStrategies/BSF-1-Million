@@ -54,7 +54,109 @@ const StatCard = ({ icon, label, value, color, accent }) => (
   </div>
 );
 
-const MiniClientRow = ({ client, accent, tasks }) => {
+const ActivityTimeline = ({ client, activities, tasks }) => {
+  const [quickLog, setQuickLog] = useState("");
+  const [logging, setLogging] = useState(false);
+
+  const handleLog = async () => {
+    if (!quickLog.trim() || logging) return;
+    setLogging(true);
+    import("./supabaseClient").then(async ({ supabase }) => {
+      const { error } = await supabase.from("activities").insert({
+        client_id: client.id,
+        type: "note",
+        content: quickLog,
+        created_by: "Agent"
+      });
+      setLogging(false);
+      if (!error) setQuickLog("");
+    });
+  };
+
+  const clientActivities = useMemo(() => {
+    return (activities || []).filter(a => a.client_id === client.id).map(a => ({
+      id: a.id,
+      type: a.type,
+      content: a.content,
+      created_by: a.created_by,
+      date: new Date(a.created_at)
+    }));
+  }, [activities, client.id]);
+
+  const clientTasks = useMemo(() => {
+    return (tasks || []).filter(t => t.client_id === client.id).map(t => ({
+      id: t.id,
+      type: "task",
+      content: t.title,
+      created_by: "System",
+      date: new Date(t.created_at)
+    }));
+  }, [tasks, client.id]);
+
+  const timelineEvents = useMemo(() => {
+    return [...clientActivities, ...clientTasks].sort((a, b) => b.date.getTime() - a.date.getTime());
+  }, [clientActivities, clientTasks]);
+
+  return (
+    <div style={{ background: "rgba(0,0,0,0.3)", padding: "16px", borderRadius: 10, borderLeft: `3px solid ${THEME.GOLD}`, marginBottom: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+        <Clock size={12} color={THEME.GOLD} />
+        <span style={{ fontSize: 10, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: 700 }}>Activity Timeline</span>
+      </div>
+      
+      {/* Quick Log Input */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        <input 
+          type="text" 
+          value={quickLog}
+          onChange={(e) => setQuickLog(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleLog()}
+          placeholder="Quick log... (e.g. Called client, left voicemail)" 
+          style={{ flex: 1, background: "rgba(255,255,255,0.03)", border: `1px solid ${THEME.GLASS_BORDER}`, padding: "8px 12px", borderRadius: 8, color: THEME.WHITE, fontSize: 13, fontFamily: "'Space Grotesk'", outline: "none" }}
+        />
+        <button disabled={logging} onClick={handleLog} style={{ padding: "0 14px", background: `linear-gradient(135deg, ${THEME.GOLD}, ${THEME.GOLD_DIM})`, color: THEME.NAVY, border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 700, fontSize: 11, fontFamily: "'Space Grotesk'", textTransform: "uppercase", opacity: logging ? 0.7 : 1 }}>
+          {logging ? '...' : 'Log'}
+        </button>
+      </div>
+
+      {/* Timeline List */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: 250, overflowY: "auto", paddingRight: 4 }} className="bsf-scrollbar">
+        {timelineEvents.length === 0 ? (
+          <div style={{ fontSize: 12, color: THEME.TEXT_DIM, fontStyle: "italic", textAlign: "center", padding: "12px 0" }}>No activity documented yet.</div>
+        ) : (
+          timelineEvents.map((evt) => {
+            const isTask = evt.type === "task";
+            const color = isTask ? THEME.GREEN : THEME.GOLD;
+            const Icon = isTask ? Flag : StickyNote;
+            return (
+              <div key={evt.id} style={{ display: "flex", gap: 12 }}>
+                <div style={{ position: "relative", width: 2, background: `linear-gradient(180deg, ${color}30, transparent)`, marginTop: 8 }}>
+                  <div style={{ position: "absolute", top: -2, left: -4, width: 10, height: 10, borderRadius: 5, background: color, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 8px ${color}60` }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
+                    <span style={{ fontSize: 10, color: color, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, display: "flex", alignItems: "center", gap: 4 }}>
+                      <Icon size={10} strokeWidth={3} />
+                      {evt.type}
+                    </span>
+                    <span style={{ fontSize: 10, color: THEME.TEXT_DIM, fontFamily: "'Space Grotesk'" }}>
+                      {evt.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })} at {evt.date.toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 13, color: THEME.WHITE, lineHeight: 1.4, opacity: 0.9 }}>
+                    {evt.content}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+};
+
+const MiniClientRow = ({ client, accent, tasks, activities }) => {
   const [expanded, setExpanded] = useState(false);
   const sop = getSOP(client.type);
   const progress = getProgress(client);
@@ -128,16 +230,8 @@ const MiniClientRow = ({ client, accent, tasks }) => {
             ))}
           </div>
 
-          {/* Notes */}
-          <div style={{ background: "rgba(0,0,0,0.3)", padding: "12px 16px", borderRadius: 10, borderLeft: `3px solid ${accent}`, marginBottom: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-              <StickyNote size={11} color={THEME.TEXT_DIM} />
-              <span style={{ fontSize: 10, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1.2, fontWeight: 700 }}>Notes</span>
-            </div>
-            <div style={{ fontSize: 13, color: THEME.WHITE, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
-              {client.notes || "No notes documented yet."}
-            </div>
-          </div>
+          {/* Timeline */}
+          <ActivityTimeline client={client} activities={activities} tasks={tasks} />
 
           {/* Transaction Timeline */}
           {UNDER_CONTRACT_STAGES.includes(client.stage) && (
@@ -335,7 +429,7 @@ const KanbanBoard = ({ clients, columns, onDropClient }) => {
 // ═══════════════════════════════════════════════════
 // BOB DEAN'S BOARD
 // ═══════════════════════════════════════════════════
-export const BobBoard = ({ clients, tasks }) => {
+export const BobBoard = ({ clients, tasks, activities }) => {
   const [viewMode, setViewMode] = useState("list"); // "list" or "pipeline"
   const bobClients = useMemo(() => (clients || []).filter((c) => c.agent === "bob"), [clients]);
   const bobTasks = useMemo(() => (tasks || []).filter((t) => t.assigned_to === "bob"), [tasks]);
@@ -439,7 +533,7 @@ export const BobBoard = ({ clients, tasks }) => {
                   <span style={{ fontSize: 11, color: THEME.TEXT_DIM, marginLeft: "auto" }}>{buyers.length}</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {buyers.map((c) => <MiniClientRow key={c.id} client={c} accent={THEME.BLUE} tasks={tasks} />)}
+                  {buyers.map((c) => <MiniClientRow key={c.id} client={c} accent={THEME.BLUE} tasks={tasks} activities={activities} />)}
                 </div>
               </div>
             )}
@@ -453,7 +547,7 @@ export const BobBoard = ({ clients, tasks }) => {
                   <span style={{ fontSize: 11, color: THEME.TEXT_DIM, marginLeft: "auto" }}>{sellers.length}</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {sellers.map((c) => <MiniClientRow key={c.id} client={c} accent={THEME.GOLD} tasks={tasks} />)}
+                  {sellers.map((c) => <MiniClientRow key={c.id} client={c} accent={THEME.GOLD} tasks={tasks} activities={activities} />)}
                 </div>
               </div>
             )}
@@ -496,7 +590,7 @@ export const BobBoard = ({ clients, tasks }) => {
 // ═══════════════════════════════════════════════════
 // AMBER'S TC BOARD
 // ═══════════════════════════════════════════════════
-export const AmberBoard = ({ clients, tasks }) => {
+export const AmberBoard = ({ clients, tasks, activities }) => {
   const [viewMode, setViewMode] = useState("list"); // "list" or "pipeline"
   const amberClients = useMemo(() => (clients || []).filter((c) => c.agent === "amber"), [clients]);
   const amberTasks = useMemo(() => (tasks || []).filter((t) => t.assigned_to === "amber"), [tasks]);
@@ -631,7 +725,7 @@ export const AmberBoard = ({ clients, tasks }) => {
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                       {groupClients.map((c) => (
-                        <MiniClientRow key={c.id} client={c} accent={gc} tasks={tasks} />
+                        <MiniClientRow key={c.id} client={c} accent={gc} tasks={tasks} activities={activities} />
                       ))}
                     </div>
                   )}
@@ -644,7 +738,7 @@ export const AmberBoard = ({ clients, tasks }) => {
               <div style={{ marginTop: 24 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12 }}>Other Files</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {otherClients.map((c) => <MiniClientRow key={c.id} client={c} accent={THEME.PURPLE} tasks={tasks} />)}
+                  {otherClients.map((c) => <MiniClientRow key={c.id} client={c} accent={THEME.PURPLE} tasks={tasks} activities={activities} />)}
                 </div>
               </div>
             )}
@@ -705,7 +799,7 @@ export const AmberBoard = ({ clients, tasks }) => {
 // ═══════════════════════════════════════════════════
 // SHEBA'S OWNER BOARD
 // ═══════════════════════════════════════════════════
-export const ShebaBoard = ({ clients, tasks }) => {
+export const ShebaBoard = ({ clients, tasks, activities }) => {
   const shebaClients = useMemo(() => (clients || []).filter((c) => c.agent === "sheba"), [clients]);
   const shebaTasks = useMemo(() => (tasks || []).filter((t) => t.assigned_to === "sheba"), [tasks]);
 
@@ -771,7 +865,7 @@ export const ShebaBoard = ({ clients, tasks }) => {
                   <span style={{ fontSize: 11, color: THEME.TEXT_DIM, marginLeft: "auto" }}>{items.length}</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {items.map((c) => <MiniClientRow key={c.id} client={c} accent={accent} tasks={tasks} />)}
+                  {items.map((c) => <MiniClientRow key={c.id} client={c} accent={accent} tasks={tasks} activities={activities} />)}
                 </div>
               </div>
             ) : null
