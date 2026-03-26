@@ -13,6 +13,7 @@ import AIChatWindow from "./AIChatWindow";
 import { BobBoard, AmberBoard, ClientAvatar } from "./TeamBoards";
 import AdminChat from "./AdminChat";
 import CalendarView from "./Calendar";
+import { useToast } from "./ToastContext";
 
 // ═══════════════════════════════════════════════════
 // SUB-COMPONENTS
@@ -63,28 +64,7 @@ const LoadingSkeleton = () => (
   </div>
 );
 
-const Toast = ({ message, type, onDone }) => {
-  useEffect(() => {
-    const t = setTimeout(onDone, 3000);
-    return () => clearTimeout(t);
-  }, [onDone]);
-  const bg = type === "error" ? "rgba(255,59,48,0.15)" : "rgba(62,207,142,0.15)";
-  const border = type === "error" ? "rgba(255,59,48,0.4)" : "rgba(62,207,142,0.4)";
-  const color = type === "error" ? THEME.RED : THEME.GREEN;
-  return (
-    <div style={{
-      position: "fixed", top: 20, right: 20, zIndex: 3000,
-      padding: "14px 22px", borderRadius: 12,
-      background: bg, border: `1px solid ${border}`, color,
-      fontSize: 13, fontWeight: 600, fontFamily: "'Space Grotesk'",
-      backdropFilter: "blur(20px)", boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-      animation: "toastIn 0.3s ease-out",
-      display: "flex", alignItems: "center", gap: 8,
-    }}>
-      {type === "error" ? "✕" : "✓"} {message}
-    </div>
-  );
-};
+
 
 // ═══════════════════════════════════════════════════
 // TABS
@@ -113,15 +93,15 @@ export default function DealCommandCenter() {
   const [showAddTask, setShowAddTask] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
-  const [toast, setToast] = useState(null);
   const [now, setNow] = useState(new Date());
+  const addToast = useToast();
 
   // ── Fetch Data ──
   const fetchClients = useCallback(async () => {
     const { data, error } = await supabase.from("clients").select("*").order("created_at", { ascending: false });
     if (!error && data) setClients(data);
-    if (error) setToast({ message: "Failed to load clients", type: "error" });
-  }, []);
+    if (error) addToast("Failed to load clients", "error");
+  }, [addToast]);
 
   const fetchTasks = useCallback(async () => {
     const { data, error } = await supabase.from("tasks").select("*").order("created_at", { ascending: false });
@@ -195,37 +175,37 @@ export default function DealCommandCenter() {
   // ── Handlers ──
   const handleClientAdded = () => {
     fetchClients();
-    setToast({ message: "Client added successfully", type: "success" });
+    addToast("Client Added", "success");
   };
 
   const handleTaskAdded = () => {
     fetchTasks();
-    setToast({ message: "Task created successfully", type: "success" });
+    addToast("Task Created", "success");
   };
 
   const handleClientUpdated = () => {
     fetchClients();
     setEditingClient(null);
-    setToast({ message: "Client updated", type: "success" });
+    addToast("Client Updated", "info");
   };
 
   const handleClientDeleted = () => {
     fetchClients();
     fetchTasks();
     setEditingClient(null);
-    setToast({ message: "Client deleted", type: "success" });
+    addToast("Client Deleted", "delete");
   };
 
   const handleTaskUpdated = () => {
     fetchTasks();
     setEditingTask(null);
-    setToast({ message: "Task updated", type: "success" });
+    addToast("Task Updated", "info");
   };
 
   const handleTaskDeleted = () => {
     fetchTasks();
     setEditingTask(null);
-    setToast({ message: "Task deleted", type: "success" });
+    addToast("Task Deleted", "delete");
   };
 
   const sidebarQuickStats = useMemo(() => {
@@ -236,7 +216,6 @@ export default function DealCommandCenter() {
 
   return (
     <div style={{ minHeight: "100vh", color: THEME.WHITE }}>
-      {toast && <Toast message={toast.message} type={toast.type} onDone={() => setToast(null)} />}
 
       {/* ══════════ LEFT SIDEBAR (desktop only) ══════════ */}
       <aside className="bsf-sidebar" style={{

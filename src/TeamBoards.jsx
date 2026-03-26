@@ -3,6 +3,7 @@ import {
   User, Target, DollarSign, Calendar, CheckCircle2, Circle, Clock,
   AlertCircle, Flag, TrendingUp, FileText, Shield, Home, Briefcase,
   ArrowRight, Star, Crown, ChevronDown, ChevronUp, Phone, StickyNote,
+  Trello, List
 } from "lucide-react";
 import { THEME, glassCard, getSOP, getProgress, formatCurrency, agentName, calculateCommission, PRIORITY_COLORS, STATUS_CONFIG, TIMELINE_FIELDS, UNDER_CONTRACT_STAGES, getDateStatus, getStageColor } from "./theme";
 
@@ -260,9 +261,82 @@ const TaskRow = ({ task, clientName }) => {
 };
 
 // ═══════════════════════════════════════════════════
+// KANBAN BOARD
+// ═══════════════════════════════════════════════════
+const KanbanBoard = ({ clients, columns, onDropClient }) => {
+  return (
+    <div className="bsf-kanban-scroll" style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 16, minHeight: 400 }}>
+      {columns.map((col) => {
+        const colClients = clients.filter((c) => c.stage === col.stage || (col.match && col.match.includes(c.stage)));
+        return (
+          <div
+            key={col.stage}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              const clientId = e.dataTransfer.getData("clientId");
+              if (clientId) onDropClient(clientId, col.stage);
+            }}
+            style={{
+              flex: "0 0 320px",
+              ...glassCard({ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 12 }),
+              background: "rgba(255,255,255,0.015)",
+              border: `1px solid ${col.color}25`,
+            }}
+          >
+            <div style={{ fontSize: 12, fontWeight: 700, color: col.color, textTransform: "uppercase", letterSpacing: 1.2, display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 10, borderBottom: `1px solid ${col.color}20`, marginBottom: 4 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ width: 6, height: 6, borderRadius: 3, background: col.color, boxShadow: `0 0 8px ${col.color}` }} />
+                {col.label || col.stage}
+              </div>
+              <span style={{ color: THEME.TEXT_DIM, background: "rgba(255,255,255,0.05)", padding: "2px 8px", borderRadius: 12, fontSize: 10 }}>{colClients.length}</span>
+            </div>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
+              {colClients.map((c) => (
+                <div
+                  key={c.id}
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData("clientId", c.id);
+                    e.currentTarget.style.opacity = '0.5';
+                  }}
+                  onDragEnd={(e) => {
+                    e.currentTarget.style.opacity = '1';
+                  }}
+                  style={{
+                    ...glassCard({ padding: "14px 16px", cursor: "grab", borderLeft: `3px solid ${col.color}` }),
+                    background: "rgba(0,0,0,0.4)",
+                    transition: "transform 0.2s, box-shadow 0.2s",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `0 8px 24px rgba(0,0,0,0.5)`; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
+                >
+                  <div style={{ fontSize: 13, fontWeight: 600, color: THEME.WHITE, marginBottom: 8, fontFamily: "'Space Grotesk'" }}>{c.name}</div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 10, color: THEME.TEXT_DIM, fontWeight: 600, letterSpacing: 0.5 }}>
+                    <span style={{ textTransform: "uppercase" }}>{c.type}</span>
+                    <span style={{ color: THEME.GOLD, textShadow: `0 0 8px ${THEME.GOLD_GLOW}` }}>{formatCurrency(c.offer_price || c.loan_amt)}</span>
+                  </div>
+                </div>
+              ))}
+              {colClients.length === 0 && (
+                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: THEME.TEXT_DIM, fontSize: 11, fontStyle: "italic", opacity: 0.5, minHeight: 100 }}>
+                  Drop here
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════
 // BOB DEAN'S BOARD
 // ═══════════════════════════════════════════════════
 export const BobBoard = ({ clients, tasks }) => {
+  const [viewMode, setViewMode] = useState("list"); // "list" or "pipeline"
   const bobClients = useMemo(() => (clients || []).filter((c) => c.agent === "bob"), [clients]);
   const bobTasks = useMemo(() => (tasks || []).filter((t) => t.assigned_to === "bob"), [tasks]);
 
@@ -289,6 +363,21 @@ export const BobBoard = ({ clients, tasks }) => {
     return new Date(t.due_date + "T00:00:00") < new Date(new Date().toDateString());
   });
 
+  const handleDropClient = async (clientId, newStage) => {
+    // In a real app we'd dispatch an optimistic update via a context, but Supabase realtime is fast!
+    import("./supabaseClient").then(({ supabase }) => {
+      supabase.from("clients").update({ stage: newStage }).eq("id", clientId).then();
+    });
+  };
+
+  const bobColumns = [
+    { stage: "Lead", color: THEME.TEXT_DIM },
+    { stage: "Pre-Qualified", color: THEME.BLUE },
+    { stage: "Active Search", color: THEME.CYAN, match: ["Active Search", "Active Marketing"] },
+    { stage: "Under Contract", color: THEME.GOLD, match: ["Under Contract", "Due Diligence", "Clear to Close"] },
+    { stage: "Closed", label: "Closed Won", color: THEME.GREEN },
+  ];
+
   return (
     <div style={{ animation: "fadeIn 0.4s ease-out" }}>
       {/* Welcome Banner */}
@@ -309,9 +398,19 @@ export const BobBoard = ({ clients, tasks }) => {
               Licensed Real Estate Agent — Burley Sells Florida
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 56, height: 56, borderRadius: 16, background: `linear-gradient(135deg, ${THEME.BLUE}30, ${THEME.GOLD}20)`, border: `1px solid ${THEME.BLUE}40`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Briefcase size={24} color={THEME.BLUE} />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 56, height: 56, borderRadius: 16, background: `linear-gradient(135deg, ${THEME.BLUE}30, ${THEME.GOLD}20)`, border: `1px solid ${THEME.BLUE}40`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Briefcase size={24} color={THEME.BLUE} />
+              </div>
+            </div>
+            <div style={{ display: "flex", background: "rgba(255,255,255,0.05)", padding: 4, borderRadius: 10, border: `1px solid ${THEME.GLASS_BORDER}` }}>
+              <button onClick={() => setViewMode("list")} style={{ padding: "6px 12px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600, fontFamily: "'Space Grotesk'", display: "flex", alignItems: "center", gap: 6, background: viewMode === "list" ? `${THEME.BLUE}30` : "transparent", color: viewMode === "list" ? THEME.WHITE : THEME.TEXT_DIM, transition: "all 0.2s" }}>
+                <List size={14} /> List
+              </button>
+              <button onClick={() => setViewMode("pipeline")} style={{ padding: "6px 12px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600, fontFamily: "'Space Grotesk'", display: "flex", alignItems: "center", gap: 6, background: viewMode === "pipeline" ? `${THEME.BLUE}30` : "transparent", color: viewMode === "pipeline" ? THEME.WHITE : THEME.TEXT_DIM, transition: "all 0.2s" }}>
+                <Trello size={14} /> Pipeline
+              </button>
             </div>
           </div>
         </div>
@@ -325,67 +424,71 @@ export const BobBoard = ({ clients, tasks }) => {
         <StatCard icon={<AlertCircle size={18} color={overdueTasks.length > 0 ? THEME.RED : THEME.GREEN} />} label="Overdue Tasks" value={overdueTasks.length} color={overdueTasks.length > 0 ? THEME.RED : THEME.GREEN} accent={overdueTasks.length > 0 ? THEME.RED : THEME.GREEN} />
       </div>
 
-      <div className="bsf-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
-        {/* Left: Pipeline by Type */}
-        <div>
-          {/* Buyers */}
-          {buyers.length > 0 && (
-            <div style={{ marginBottom: 24 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <Home size={14} color={THEME.BLUE} />
-                <span style={{ fontSize: 13, fontWeight: 700, color: THEME.WHITE, textTransform: "uppercase", letterSpacing: 1.2 }}>Buyers</span>
-                <span style={{ fontSize: 11, color: THEME.TEXT_DIM, marginLeft: "auto" }}>{buyers.length}</span>
+      {viewMode === "pipeline" ? (
+        <KanbanBoard clients={bobClients} columns={bobColumns} onDropClient={handleDropClient} />
+      ) : (
+        <div className="bsf-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+          {/* Left: Pipeline by Type */}
+          <div>
+            {/* Buyers */}
+            {buyers.length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                  <Home size={14} color={THEME.BLUE} />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: THEME.WHITE, textTransform: "uppercase", letterSpacing: 1.2 }}>Buyers</span>
+                  <span style={{ fontSize: 11, color: THEME.TEXT_DIM, marginLeft: "auto" }}>{buyers.length}</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {buyers.map((c) => <MiniClientRow key={c.id} client={c} accent={THEME.BLUE} tasks={tasks} />)}
+                </div>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {buyers.map((c) => <MiniClientRow key={c.id} client={c} accent={THEME.BLUE} tasks={tasks} />)}
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* Sellers */}
-          {sellers.length > 0 && (
-            <div style={{ marginBottom: 24 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <TrendingUp size={14} color={THEME.GOLD} />
-                <span style={{ fontSize: 13, fontWeight: 700, color: THEME.WHITE, textTransform: "uppercase", letterSpacing: 1.2 }}>Sellers</span>
-                <span style={{ fontSize: 11, color: THEME.TEXT_DIM, marginLeft: "auto" }}>{sellers.length}</span>
+            {/* Sellers */}
+            {sellers.length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                  <TrendingUp size={14} color={THEME.GOLD} />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: THEME.WHITE, textTransform: "uppercase", letterSpacing: 1.2 }}>Sellers</span>
+                  <span style={{ fontSize: 11, color: THEME.TEXT_DIM, marginLeft: "auto" }}>{sellers.length}</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {sellers.map((c) => <MiniClientRow key={c.id} client={c} accent={THEME.GOLD} tasks={tasks} />)}
+                </div>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {sellers.map((c) => <MiniClientRow key={c.id} client={c} accent={THEME.GOLD} tasks={tasks} />)}
-              </div>
-            </div>
-          )}
+            )}
 
-          {bobClients.length === 0 && (
-            <div style={{ ...glassCard({ padding: 40, textAlign: "center" }) }}>
-              <User size={36} color={THEME.TEXT_DIM} style={{ opacity: 0.3, marginBottom: 12 }} />
-              <div style={{ color: THEME.TEXT_DIM, fontSize: 14 }}>No clients assigned yet</div>
-            </div>
-          )}
-        </div>
-
-        {/* Right: Tasks */}
-        <div>
-          <div style={{ ...glassCard({ padding: "20px 24px" }) }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <Flag size={14} color={THEME.GOLD} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: THEME.WHITE, textTransform: "uppercase", letterSpacing: 1.2 }}>My Tasks</span>
-              <span style={{ fontSize: 11, color: THEME.TEXT_DIM, marginLeft: "auto" }}>
-                {activeTasks.length} active
-              </span>
-            </div>
-            {bobTasks.length === 0 ? (
-              <div style={{ padding: 24, textAlign: "center", color: THEME.TEXT_DIM, fontSize: 13 }}>No tasks yet</div>
-            ) : (
-              <div>
-                {bobTasks.slice(0, 15).map((t) => (
-                  <TaskRow key={t.id} task={t} clientName={t.client_id ? clientMap[t.client_id] : null} />
-                ))}
+            {bobClients.length === 0 && (
+              <div style={{ ...glassCard({ padding: 40, textAlign: "center" }) }}>
+                <User size={36} color={THEME.TEXT_DIM} style={{ opacity: 0.3, marginBottom: 12 }} />
+                <div style={{ color: THEME.TEXT_DIM, fontSize: 14 }}>No clients assigned yet</div>
               </div>
             )}
           </div>
+
+          {/* Right: Tasks */}
+          <div>
+            <div style={{ ...glassCard({ padding: "20px 24px" }) }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <Flag size={14} color={THEME.GOLD} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: THEME.WHITE, textTransform: "uppercase", letterSpacing: 1.2 }}>My Tasks</span>
+                <span style={{ fontSize: 11, color: THEME.TEXT_DIM, marginLeft: "auto" }}>
+                  {activeTasks.length} active
+                </span>
+              </div>
+              {bobTasks.length === 0 ? (
+                <div style={{ padding: 24, textAlign: "center", color: THEME.TEXT_DIM, fontSize: 13 }}>No tasks yet</div>
+              ) : (
+                <div>
+                  {bobTasks.slice(0, 15).map((t) => (
+                    <TaskRow key={t.id} task={t} clientName={t.client_id ? clientMap[t.client_id] : null} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
@@ -394,6 +497,7 @@ export const BobBoard = ({ clients, tasks }) => {
 // AMBER'S TC BOARD
 // ═══════════════════════════════════════════════════
 export const AmberBoard = ({ clients, tasks }) => {
+  const [viewMode, setViewMode] = useState("list"); // "list" or "pipeline"
   const amberClients = useMemo(() => (clients || []).filter((c) => c.agent === "amber"), [clients]);
   const amberTasks = useMemo(() => (tasks || []).filter((t) => t.assigned_to === "amber"), [tasks]);
 
@@ -439,6 +543,20 @@ export const AmberBoard = ({ clients, tasks }) => {
     "Closed": THEME.TEXT_DIM,
   };
 
+  const handleDropClient = async (clientId, newStage) => {
+    import("./supabaseClient").then(({ supabase }) => {
+      supabase.from("clients").update({ stage: newStage }).eq("id", clientId).then();
+    });
+  };
+
+  const amberColumns = [
+    { stage: "Received", color: THEME.RED, match: ["Received", "Pending Sigs"] },
+    { stage: "Docs In Review", color: THEME.ORANGE },
+    { stage: "Compliance", color: THEME.PURPLE },
+    { stage: "Clear to Close", label: "Ready to Close", color: THEME.GREEN },
+    { stage: "Closed", color: THEME.TEXT_DIM },
+  ];
+
   return (
     <div style={{ animation: "fadeIn 0.4s ease-out" }}>
       {/* Welcome Banner */}
@@ -459,9 +577,19 @@ export const AmberBoard = ({ clients, tasks }) => {
               TC & Compliance — Burley Sells Florida
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 56, height: 56, borderRadius: 16, background: `linear-gradient(135deg, ${THEME.PURPLE}30, ${THEME.GOLD}20)`, border: `1px solid ${THEME.PURPLE}40`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Shield size={24} color={THEME.PURPLE} />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 56, height: 56, borderRadius: 16, background: `linear-gradient(135deg, ${THEME.PURPLE}30, ${THEME.GOLD}20)`, border: `1px solid ${THEME.PURPLE}40`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Shield size={24} color={THEME.PURPLE} />
+              </div>
+            </div>
+            <div style={{ display: "flex", background: "rgba(255,255,255,0.05)", padding: 4, borderRadius: 10, border: `1px solid ${THEME.GLASS_BORDER}` }}>
+              <button onClick={() => setViewMode("list")} style={{ padding: "6px 12px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600, fontFamily: "'Space Grotesk'", display: "flex", alignItems: "center", gap: 6, background: viewMode === "list" ? `${THEME.PURPLE}30` : "transparent", color: viewMode === "list" ? THEME.WHITE : THEME.TEXT_DIM, transition: "all 0.2s" }}>
+                <List size={14} /> List
+              </button>
+              <button onClick={() => setViewMode("pipeline")} style={{ padding: "6px 12px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600, fontFamily: "'Space Grotesk'", display: "flex", alignItems: "center", gap: 6, background: viewMode === "pipeline" ? `${THEME.PURPLE}30` : "transparent", color: viewMode === "pipeline" ? THEME.WHITE : THEME.TEXT_DIM, transition: "all 0.2s" }}>
+                <Trello size={14} /> Pipeline
+              </button>
             </div>
           </div>
         </div>
@@ -475,97 +603,101 @@ export const AmberBoard = ({ clients, tasks }) => {
         <StatCard icon={<AlertCircle size={18} color={urgentTasks.length > 0 ? THEME.RED : THEME.GREEN} />} label="Urgent Tasks" value={urgentTasks.length} color={urgentTasks.length > 0 ? THEME.RED : THEME.GREEN} accent={urgentTasks.length > 0 ? THEME.RED : THEME.GREEN} />
       </div>
 
-      <div className="bsf-two-col" style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 24 }}>
-        {/* Left: Compliance Pipeline */}
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: THEME.WHITE, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-            <Shield size={14} color={THEME.PURPLE} />
-            Compliance Pipeline
-          </div>
+      {viewMode === "pipeline" ? (
+        <KanbanBoard clients={amberClients} columns={amberColumns} onDropClient={handleDropClient} />
+      ) : (
+        <div className="bsf-two-col" style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 24 }}>
+          {/* Left: Compliance Pipeline */}
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: THEME.WHITE, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+              <Shield size={14} color={THEME.PURPLE} />
+              Compliance Pipeline
+            </div>
 
-          {Object.entries(stageGroups).map(([groupName, groupClients]) => {
-            if (groupClients.length === 0 && groupName === "Closed") return null;
-            const gc = stageColors[groupName];
-            return (
-              <div key={groupName} style={{ marginBottom: 20 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: 4, background: gc, boxShadow: `0 0 6px ${gc}` }} />
-                  <span style={{ fontSize: 12, fontWeight: 700, color: gc, textTransform: "uppercase", letterSpacing: 1 }}>{groupName}</span>
-                  <span style={{ fontSize: 11, color: THEME.TEXT_DIM, marginLeft: "auto" }}>{groupClients.length}</span>
-                </div>
-                {groupClients.length === 0 ? (
-                  <div style={{ padding: "10px 16px", fontSize: 12, color: THEME.TEXT_DIM, fontStyle: "italic", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
-                    No files in this stage
+            {Object.entries(stageGroups).map(([groupName, groupClients]) => {
+              if (groupClients.length === 0 && groupName === "Closed") return null;
+              const gc = stageColors[groupName];
+              return (
+                <div key={groupName} style={{ marginBottom: 20 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: 4, background: gc, boxShadow: `0 0 6px ${gc}` }} />
+                    <span style={{ fontSize: 12, fontWeight: 700, color: gc, textTransform: "uppercase", letterSpacing: 1 }}>{groupName}</span>
+                    <span style={{ fontSize: 11, color: THEME.TEXT_DIM, marginLeft: "auto" }}>{groupClients.length}</span>
                   </div>
-                ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    {groupClients.map((c) => (
-                      <MiniClientRow key={c.id} client={c} accent={gc} tasks={tasks} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          {/* Non-TC clients */}
-          {otherClients.length > 0 && (
-            <div style={{ marginTop: 24 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12 }}>Other Files</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {otherClients.map((c) => <MiniClientRow key={c.id} client={c} accent={THEME.PURPLE} tasks={tasks} />)}
-              </div>
-            </div>
-          )}
-
-          {amberClients.length === 0 && (
-            <div style={{ ...glassCard({ padding: 40, textAlign: "center" }) }}>
-              <Shield size={36} color={THEME.TEXT_DIM} style={{ opacity: 0.3, marginBottom: 12 }} />
-              <div style={{ color: THEME.TEXT_DIM, fontSize: 14 }}>No files assigned yet</div>
-            </div>
-          )}
-        </div>
-
-        {/* Right: Tasks + Upcoming Closings */}
-        <div>
-          {/* Upcoming Closings */}
-          {upcomingClosings.length > 0 && (
-            <div style={{ ...glassCard({ padding: "20px 24px", marginBottom: 20, border: `1px solid ${THEME.ORANGE}20` }) }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, paddingBottom: 10, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <Calendar size={14} color={THEME.ORANGE} />
-                <span style={{ fontSize: 12, fontWeight: 700, color: THEME.ORANGE, textTransform: "uppercase", letterSpacing: 1.2 }}>Closing in 14 Days</span>
-              </div>
-              {upcomingClosings.map((c) => (
-                <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
-                  <Calendar size={12} color={THEME.ORANGE} />
-                  <span style={{ flex: 1, fontSize: 13, color: THEME.WHITE, fontWeight: 500 }}>{c.name}</span>
-                  <span style={{ fontSize: 12, color: THEME.ORANGE, fontWeight: 600 }}>
-                    {new Date(c.closing_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                  </span>
+                  {groupClients.length === 0 ? (
+                    <div style={{ padding: "10px 16px", fontSize: 12, color: THEME.TEXT_DIM, fontStyle: "italic", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
+                      No files in this stage
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      {groupClients.map((c) => (
+                        <MiniClientRow key={c.id} client={c} accent={gc} tasks={tasks} />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
+              );
+            })}
 
-          {/* Tasks */}
-          <div style={{ ...glassCard({ padding: "20px 24px" }) }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <Flag size={14} color={THEME.PURPLE} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: THEME.WHITE, textTransform: "uppercase", letterSpacing: 1.2 }}>My Tasks</span>
-              <span style={{ fontSize: 11, color: THEME.TEXT_DIM, marginLeft: "auto" }}>{activeTasks.length} active</span>
-            </div>
-            {amberTasks.length === 0 ? (
-              <div style={{ padding: 24, textAlign: "center", color: THEME.TEXT_DIM, fontSize: 13 }}>No tasks yet</div>
-            ) : (
-              <div>
-                {amberTasks.slice(0, 15).map((t) => (
-                  <TaskRow key={t.id} task={t} clientName={t.client_id ? clientMap[t.client_id] : null} />
-                ))}
+            {/* Non-TC clients */}
+            {otherClients.length > 0 && (
+              <div style={{ marginTop: 24 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12 }}>Other Files</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {otherClients.map((c) => <MiniClientRow key={c.id} client={c} accent={THEME.PURPLE} tasks={tasks} />)}
+                </div>
+              </div>
+            )}
+
+            {amberClients.length === 0 && (
+              <div style={{ ...glassCard({ padding: 40, textAlign: "center" }) }}>
+                <Shield size={36} color={THEME.TEXT_DIM} style={{ opacity: 0.3, marginBottom: 12 }} />
+                <div style={{ color: THEME.TEXT_DIM, fontSize: 14 }}>No files assigned yet</div>
               </div>
             )}
           </div>
+
+          {/* Right: Tasks + Upcoming Closings */}
+          <div>
+            {/* Upcoming Closings */}
+            {upcomingClosings.length > 0 && (
+              <div style={{ ...glassCard({ padding: "20px 24px", marginBottom: 20, border: `1px solid ${THEME.ORANGE}20` }) }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, paddingBottom: 10, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <Calendar size={14} color={THEME.ORANGE} />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: THEME.ORANGE, textTransform: "uppercase", letterSpacing: 1.2 }}>Closing in 14 Days</span>
+                </div>
+                {upcomingClosings.map((c) => (
+                  <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+                    <Calendar size={12} color={THEME.ORANGE} />
+                    <span style={{ flex: 1, fontSize: 13, color: THEME.WHITE, fontWeight: 500 }}>{c.name}</span>
+                    <span style={{ fontSize: 12, color: THEME.ORANGE, fontWeight: 600 }}>
+                      {new Date(c.closing_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Tasks */}
+            <div style={{ ...glassCard({ padding: "20px 24px" }) }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <Flag size={14} color={THEME.PURPLE} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: THEME.WHITE, textTransform: "uppercase", letterSpacing: 1.2 }}>My Tasks</span>
+                <span style={{ fontSize: 11, color: THEME.TEXT_DIM, marginLeft: "auto" }}>{activeTasks.length} active</span>
+              </div>
+              {amberTasks.length === 0 ? (
+                <div style={{ padding: 24, textAlign: "center", color: THEME.TEXT_DIM, fontSize: 13 }}>No tasks yet</div>
+              ) : (
+                <div>
+                  {amberTasks.slice(0, 15).map((t) => (
+                    <TaskRow key={t.id} task={t} clientName={t.client_id ? clientMap[t.client_id] : null} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
