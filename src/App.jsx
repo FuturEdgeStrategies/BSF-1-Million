@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import {
   Activity, DollarSign, Zap, Calendar as CalendarIcon, User, ChevronRight,
   CheckCircle2, Circle, Plus, LayoutDashboard, ListTodo,
-  Briefcase, Shield, Bot, Pencil, TrendingUp, Target,
+  Briefcase, Shield, Bot, Pencil, TrendingUp, Target, LogOut
 } from "lucide-react";
 import { THEME, AGENTS, getSOP, getProgress, glassCard, formatCurrency, agentName, calculateCommission, TIMELINE_FIELDS, UNDER_CONTRACT_STAGES, getDateStatus, getStageColor } from "./theme";
 import { supabase } from "./supabaseClient";
@@ -15,6 +15,7 @@ import AdminChat from "./AdminChat";
 import CalendarView from "./Calendar";
 import { useToast } from "./ToastContext";
 import CommissionWidget from "./CommissionWidget";
+import Auth from "./Auth";
 
 // ═══════════════════════════════════════════════════
 // SUB-COMPONENTS
@@ -82,7 +83,7 @@ const TABS = [
 // ═══════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════
-export default function DealCommandCenter() {
+function DealCommandCenter({ session }) {
   const [clients, setClients] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [events, setEvents] = useState([]);
@@ -321,6 +322,20 @@ export default function DealCommandCenter() {
           >
             <Plus size={14} /> New Task
           </button>
+          <button
+            onClick={() => supabase.auth.signOut()}
+            style={{
+              padding: "10px 14px", borderRadius: 10, cursor: "pointer",
+              background: "transparent", border: "none",
+              color: THEME.RED, fontFamily: "'Space Grotesk'", fontSize: 12, fontWeight: 600,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              transition: "all 0.2s", marginTop: 12,
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,59,48,0.1)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+          >
+            <LogOut size={14} /> Sign Out
+          </button>
         </div>
       </aside>
 
@@ -375,6 +390,13 @@ export default function DealCommandCenter() {
             display: "flex", alignItems: "center", gap: 4,
           }}>
             <Plus size={13} /> Task
+          </button>
+          <button onClick={() => supabase.auth.signOut()} style={{
+            padding: "7px 10px", borderRadius: 8, cursor: "pointer",
+            background: "rgba(255,59,48,0.1)", border: `1px solid rgba(255,59,48,0.2)`,
+            color: THEME.RED, display: "flex", alignItems: "center", justifyContent: "center"
+          }}>
+            <LogOut size={13} />
           </button>
         </div>
       </header>
@@ -686,4 +708,28 @@ export default function DealCommandCenter() {
       {editingTask && <EditTaskModal task={editingTask} onClose={() => setEditingTask(null)} onUpdated={handleTaskUpdated} onDeleted={handleTaskDeleted} clients={clients} />}
     </div>
   );
+}
+
+export default function App() {
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) return <div style={{ minHeight: "100vh", background: THEME.NAVY_DEEP }} />;
+  if (!session) return <Auth />;
+  return <DealCommandCenter session={session} />;
 }
