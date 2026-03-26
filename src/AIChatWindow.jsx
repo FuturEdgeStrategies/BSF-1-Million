@@ -239,10 +239,14 @@ const AIChatWindow = ({ clients, tasks, onRefresh }) => {
     setLoading(true);
 
     const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-    if (!apiKey) {
-      setMessages((p) => [...p, { role: "assistant", content: "Error: VITE_OPENAI_API_KEY is not configured." }]);
-      setLoading(false);
-      return;
+    // For local dev without vercel dev, we fallback to client-side key if available.
+    // In production, /api/chat handles it and protects the key.
+    const endpoint = import.meta.env.DEV && apiKey
+      ? "https://api.openai.com/v1/chat/completions"
+      : "/api/chat";
+    const headers = { "Content-Type": "application/json" };
+    if (import.meta.env.DEV && apiKey) {
+      headers["Authorization"] = `Bearer ${apiKey}`;
     }
 
     try {
@@ -263,9 +267,9 @@ const AIChatWindow = ({ clients, tasks, onRefresh }) => {
       for (let i = 0; i < 3; i++) {
         let res;
         try {
-          res = await fetch("https://api.openai.com/v1/chat/completions", {
+          res = await fetch(endpoint, {
             method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+            headers,
             body: JSON.stringify({ model: "gpt-4o-mini", messages: conversationMessages, tools: AI_TOOLS, tool_choice: "auto" }),
           });
         } catch (fetchErr) {

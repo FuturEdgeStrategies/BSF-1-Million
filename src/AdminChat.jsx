@@ -392,11 +392,14 @@ const AdminChat = ({ clients, tasks, onRefresh }) => {
     persistMsg(userMsg);
 
     const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-    if (!apiKey) {
-      const errMsg = { role: "assistant", content: "⚠ OpenAI API key not found. Please restart the dev server (npm run dev) so the .env file is loaded." };
-      setMessages((p) => [...p, errMsg]);
-      setLoading(false);
-      return;
+    // For local dev without vercel dev, we fallback to client-side key if available.
+    // In production, /api/chat handles it and protects the key.
+    const endpoint = import.meta.env.DEV && apiKey
+      ? "https://api.openai.com/v1/chat/completions"
+      : "/api/chat";
+    const headers = { "Content-Type": "application/json" };
+    if (import.meta.env.DEV && apiKey) {
+      headers["Authorization"] = `Bearer ${apiKey}`;
     }
 
     try {
@@ -422,9 +425,9 @@ const AdminChat = ({ clients, tasks, onRefresh }) => {
 
         let res;
         try {
-          res = await fetch("https://api.openai.com/v1/chat/completions", {
+          res = await fetch(endpoint, {
             method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+            headers,
             body: JSON.stringify(body),
           });
         } catch (fetchErr) {

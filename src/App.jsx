@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import {
   Activity, DollarSign, Zap, Calendar as CalendarIcon, User, ChevronRight,
   CheckCircle2, Circle, Plus, LayoutDashboard, ListTodo,
-  Briefcase, Shield, Bot, Pencil, TrendingUp, Target, LogOut
+  Briefcase, Shield, Bot, Pencil, TrendingUp, Target, LogOut, AlertTriangle, Clock
 } from "lucide-react";
 import { THEME, AGENTS, getSOP, getProgress, glassCard, formatCurrency, agentName, calculateCommission, TIMELINE_FIELDS, UNDER_CONTRACT_STAGES, getDateStatus, getStageColor } from "./theme";
 import { supabase } from "./supabaseClient";
@@ -66,6 +66,49 @@ const LoadingSkeleton = () => (
   </div>
 );
 
+
+const AdaptiveInsights = ({ clients, tasks, events, onClientClick, onTaskClick }) => {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  
+  // Urgent items
+  const urgentTasks = (tasks || []).filter(t => t.status !== "completed" && t.due_date && t.due_date <= todayStr);
+  const missingApproval = (clients || []).filter(c => c.stage === "Lead" && (!c.pre_approval || c.pre_approval === "N/A"));
+  const todayEvents = (events || []).filter(e => e.event_date === todayStr);
+
+  const totalUrgent = urgentTasks.length + missingApproval.length + todayEvents.length;
+  if (totalUrgent === 0) return null;
+
+  return (
+    <div style={{ ...glassCard({ padding: 24, marginBottom: 32, border: `1px solid ${THEME.ORANGE}40`, animation: "fadeIn 0.4s ease-out" }) }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+        <div style={{ width: 8, height: 8, borderRadius: 4, background: THEME.ORANGE, boxShadow: `0 0 12px ${THEME.ORANGE}`, animation: "livePulse 2s infinite" }} />
+        <h3 style={{ margin: 0, fontSize: 13, color: THEME.ORANGE, fontWeight: 700, fontFamily: "'Space Grotesk'", textTransform: "uppercase", letterSpacing: 1.2 }}>
+          Adaptive Insights & Action Required
+        </h3>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
+        {urgentTasks.map(t => (
+          <div key={t.id} onClick={() => onTaskClick(t)} style={{ background: "rgba(255,255,255,0.03)", padding: "12px 16px", borderRadius: 10, borderLeft: `3px solid ${THEME.RED}`, cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={(e)=>e.currentTarget.style.background="rgba(255,255,255,0.06)"} onMouseLeave={(e)=>e.currentTarget.style.background="rgba(255,255,255,0.03)"}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: THEME.RED, fontWeight: 700, marginBottom: 6 }}><AlertTriangle size={12}/> OVERDUE TASK</div>
+            <div style={{ fontSize: 13, color: THEME.WHITE, fontWeight: 500 }}>{t.title}</div>
+          </div>
+        ))}
+        {missingApproval.map(c => (
+          <div key={c.id} onClick={() => onClientClick(c)} style={{ background: "rgba(255,255,255,0.03)", padding: "12px 16px", borderRadius: 10, borderLeft: `3px solid ${THEME.GOLD}`, cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={(e)=>e.currentTarget.style.background="rgba(255,255,255,0.06)"} onMouseLeave={(e)=>e.currentTarget.style.background="rgba(255,255,255,0.03)"}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: THEME.GOLD, fontWeight: 700, marginBottom: 6 }}><Shield size={12}/> MISSING PRE-APPROVAL</div>
+            <div style={{ fontSize: 13, color: THEME.WHITE, fontWeight: 500 }}>{c.name}</div>
+          </div>
+        ))}
+        {todayEvents.map(e => (
+          <div key={e.id} style={{ background: "rgba(255,255,255,0.03)", padding: "12px 16px", borderRadius: 10, borderLeft: `3px solid ${THEME.BLUE}` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: THEME.BLUE, fontWeight: 700, marginBottom: 6 }}><Clock size={12}/> TODAY at {e.time_start || "TBA"}</div>
+            <div style={{ fontSize: 13, color: THEME.WHITE, fontWeight: 500 }}>{e.title}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 
 // ═══════════════════════════════════════════════════
@@ -459,6 +502,15 @@ function DealCommandCenter({ session }) {
                 <KpiCard icon={<Zap size={18} color={THEME.CYAN} />} label="Under Contract" value={filteredClients.filter((c) => c.stage === "Under Contract").length} valueColor={THEME.CYAN} accentColor={THEME.CYAN} delay={0.1} />
                 <KpiCard icon={<CalendarIcon size={18} color={THEME.ORANGE} />} label="Closing Soon" value={closingSoonCount} valueColor={THEME.ORANGE} accentColor={THEME.ORANGE} delay={0.15} />
               </div>
+
+              {/* Adaptive Insights */}
+              <AdaptiveInsights 
+                clients={clients} 
+                tasks={tasks} 
+                events={events} 
+                onClientClick={setEditingClient} 
+                onTaskClick={setEditingTask} 
+              />
 
               {/* Chart */}
               <div style={{ ...glassCard({ padding: 32, marginBottom: 32, boxShadow: "0 10px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)", position: "relative", overflow: "hidden" }) }}>
