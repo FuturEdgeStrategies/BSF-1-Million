@@ -4,14 +4,14 @@ import { THEME, glassCard, getSOP, TIMELINE_FIELDS } from "./theme";
 import { supabase } from "./supabaseClient";
 
 const modalOverlay = {
-  position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(12px)",
+  position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(16px)",
   display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000,
   animation: "fadeIn 0.2s ease-out",
 };
 
 const inputStyle = {
   width: "100%", padding: "11px 16px", borderRadius: 10, fontSize: 14,
-  background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
   color: THEME.WHITE, outline: "none", fontFamily: "'Space Grotesk', sans-serif",
   boxSizing: "border-box", transition: "border-color 0.2s, box-shadow 0.2s",
 };
@@ -44,8 +44,8 @@ const deleteBtnStyle = {
 const modalCard = (width = 520) => ({
   ...glassCard({
     padding: 36, width, maxHeight: "88vh", overflowY: "auto",
-    border: `1px solid ${THEME.GOLD}30`,
-    boxShadow: `0 32px 80px rgba(0,0,0,0.6), 0 0 60px ${THEME.GOLD_GLOW}`,
+    border: `1px solid ${THEME.GOLD}20`,
+    boxShadow: `0 32px 80px rgba(0,0,0,0.7), 0 0 80px ${THEME.GOLD_GLOW}, inset 0 1px 0 rgba(255,255,255,0.06)`,
   }),
 });
 

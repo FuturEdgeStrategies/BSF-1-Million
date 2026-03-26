@@ -6,6 +6,7 @@ export const THEME = {
   NAVY: "#050A12",
   NAVY_LIGHT: "#0F1E35",
   NAVY_MID: "#091728",
+  NAVY_DEEP: "#020610",
   GOLD: "#C9A84C",
   GOLD_DIM: "#8B7535",
   GOLD_GLOW: "rgba(201,168,76,0.15)",
@@ -20,6 +21,25 @@ export const THEME = {
   RED: "#FF3B30",
   GLASS: "rgba(255,255,255,0.03)",
   GLASS_BORDER: "rgba(255,255,255,0.07)",
+};
+
+// ── STAGE COLORS (for client card left bars) ──
+export const STAGE_COLORS = {
+  "Lead": THEME.TEXT_DIM,
+  "Pre-Qualified": THEME.BLUE,
+  "Active Search": THEME.CYAN,
+  "Active Marketing": THEME.CYAN,
+  "Under Contract": THEME.GOLD,
+  "Due Diligence": THEME.ORANGE,
+  "Clear to Close": THEME.GREEN,
+  "Closed": THEME.GREEN,
+  "Received": THEME.TEXT_DIM,
+  "Docs In Review": THEME.ORANGE,
+  "Pending Sigs": THEME.RED,
+  "Compliance": THEME.PURPLE,
+  "Property Analysis": THEME.BLUE,
+  "Renovation": THEME.ORANGE,
+  "Listing Prep": THEME.CYAN,
 };
 
 export const PRIORITY_COLORS = {
@@ -118,13 +138,16 @@ export const AGENTS = [
 
 // ── GLASS CARD STYLE ──
 export const glassCard = (extra = {}) => ({
-  background: "linear-gradient(135deg, rgba(10,22,40,0.88) 0%, rgba(6,15,28,0.95) 100%)",
+  background: "linear-gradient(135deg, rgba(8,18,35,0.92) 0%, rgba(4,12,24,0.97) 100%)",
   backdropFilter: "blur(24px)",
   WebkitBackdropFilter: "blur(24px)",
   border: `1px solid rgba(255,255,255,0.08)`,
   borderRadius: 16,
+  boxShadow: "0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)",
   ...extra,
 });
+
+export const getStageColor = (stage) => STAGE_COLORS[stage] || THEME.TEXT_DIM;
 
 // ── HELPERS ──
 export const formatCurrency = (n) => {

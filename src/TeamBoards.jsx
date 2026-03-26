@@ -4,7 +4,7 @@ import {
   AlertCircle, Flag, TrendingUp, FileText, Shield, Home, Briefcase,
   ArrowRight, Star, Crown, ChevronDown, ChevronUp, Phone, StickyNote,
 } from "lucide-react";
-import { THEME, glassCard, getSOP, getProgress, formatCurrency, agentName, calculateCommission, PRIORITY_COLORS, STATUS_CONFIG, TIMELINE_FIELDS, UNDER_CONTRACT_STAGES, getDateStatus } from "./theme";
+import { THEME, glassCard, getSOP, getProgress, formatCurrency, agentName, calculateCommission, PRIORITY_COLORS, STATUS_CONFIG, TIMELINE_FIELDS, UNDER_CONTRACT_STAGES, getDateStatus, getStageColor } from "./theme";
 
 // ═══════════════════════════════════════════════════
 // SHARED COMPONENTS
@@ -38,15 +38,16 @@ export const ClientAvatar = ({ client, size = 36, accent }) => {
 };
 
 const StatCard = ({ icon, label, value, color, accent }) => (
-  <div style={{ ...glassCard({ padding: "22px 26px", position: "relative", overflow: "hidden" }) }}>
-    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${accent}, transparent)`, animation: "borderGlow 3s ease-in-out infinite" }} />
-    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-      <div style={{ width: 36, height: 36, borderRadius: 10, background: `${accent}15`, border: `1px solid ${accent}30`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+  <div style={{ ...glassCard({ padding: "20px 22px", position: "relative", overflow: "hidden", border: `1px solid ${accent}15` }) }}>
+    <div style={{ position: "absolute", top: 0, left: 0, width: 3, bottom: 0, background: accent, borderRadius: "3px 0 0 3px" }} />
+    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, ${accent}60, transparent 60%)` }} />
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+      <div style={{ width: 34, height: 34, borderRadius: 10, background: `${accent}12`, border: `1px solid ${accent}25`, display: "flex", alignItems: "center", justifyContent: "center" }}>
         {icon}
       </div>
-      <span style={{ fontSize: 10, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 700 }}>{label}</span>
+      <span style={{ fontSize: 10, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1.8, fontWeight: 700 }}>{label}</span>
     </div>
-    <div style={{ fontSize: 36, fontWeight: 700, color: color || THEME.WHITE, lineHeight: 1, fontFamily: "'Space Grotesk'", textShadow: `0 0 20px ${accent}40` }}>
+    <div style={{ fontSize: 34, fontWeight: 700, color: color || THEME.WHITE, lineHeight: 1, fontFamily: "'Space Grotesk'", textShadow: `0 0 24px ${accent}30` }}>
       {value}
     </div>
   </div>
@@ -81,6 +82,8 @@ const MiniClientRow = ({ client, accent, tasks }) => {
             padding: "16px 20px", display: "flex", alignItems: "center", gap: 16,
             transition: "all 0.2s", cursor: "pointer",
             borderColor: expanded ? `${accent}40` : THEME.GLASS_BORDER,
+            borderLeft: `4px solid ${getStageColor(client.stage)}`,
+            position: "relative", overflow: "hidden",
           }),
         }}
         onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${accent}40`; }}

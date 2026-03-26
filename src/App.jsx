@@ -3,9 +3,9 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import {
   Activity, DollarSign, Zap, Calendar as CalendarIcon, User, ChevronRight,
   CheckCircle2, Circle, Plus, LayoutDashboard, ListTodo,
-  Briefcase, Shield, Bot, Pencil,
+  Briefcase, Shield, Bot, Pencil, TrendingUp, Target,
 } from "lucide-react";
-import { THEME, AGENTS, getSOP, getProgress, glassCard, formatCurrency, agentName, calculateCommission, TIMELINE_FIELDS, UNDER_CONTRACT_STAGES, getDateStatus } from "./theme";
+import { THEME, AGENTS, getSOP, getProgress, glassCard, formatCurrency, agentName, calculateCommission, TIMELINE_FIELDS, UNDER_CONTRACT_STAGES, getDateStatus, getStageColor } from "./theme";
 import { supabase } from "./supabaseClient";
 import { AddClientModal, AddTaskModal, EditClientModal, EditTaskModal } from "./Modals";
 import TaskHub from "./TaskHub";
@@ -30,15 +30,16 @@ const TypeBadge = ({ type }) => {
 };
 
 const KpiCard = ({ icon, label, value, valueColor, accentColor, delay = 0 }) => (
-  <div style={{ ...glassCard({ padding: 28, boxShadow: `0 10px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06), 0 0 24px ${accentColor ?? THEME.GOLD}08`, position: "relative", overflow: "hidden", animation: `cardEntrance 0.4s ease-out ${delay}s both` }) }}>
-    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, transparent, ${accentColor ?? THEME.GOLD}CC, transparent)`, animation: "borderGlow 3s ease-in-out infinite" }} />
-    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-      <div style={{ width: 38, height: 38, borderRadius: 10, background: `${accentColor ?? THEME.GOLD}18`, border: `1px solid ${accentColor ?? THEME.GOLD}30`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+  <div style={{ ...glassCard({ padding: "24px 26px", position: "relative", overflow: "hidden", animation: `cardEntrance 0.4s ease-out ${delay}s both`, border: `1px solid ${accentColor ?? THEME.GOLD}15` }) }}>
+    <div style={{ position: "absolute", top: 0, left: 0, width: 3, bottom: 0, background: accentColor ?? THEME.GOLD, borderRadius: "3px 0 0 3px" }} />
+    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, ${accentColor ?? THEME.GOLD}60, transparent 60%)` }} />
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+      <div style={{ width: 36, height: 36, borderRadius: 10, background: `${accentColor ?? THEME.GOLD}12`, border: `1px solid ${accentColor ?? THEME.GOLD}25`, display: "flex", alignItems: "center", justifyContent: "center" }}>
         {icon}
       </div>
-      <span style={{ fontSize: 11, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1.5, fontWeight: 600 }}>{label}</span>
+      <span style={{ fontSize: 10, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 1.8, fontWeight: 700 }}>{label}</span>
     </div>
-    <div style={{ fontSize: 40, fontWeight: 700, color: valueColor ?? THEME.WHITE, lineHeight: 1, fontFamily: "'Space Grotesk', sans-serif", letterSpacing: -1, textShadow: `0 0 24px ${valueColor ?? THEME.GOLD_GLOW}` }}>
+    <div style={{ fontSize: 38, fontWeight: 700, color: valueColor ?? THEME.WHITE, lineHeight: 1, fontFamily: "'Space Grotesk', sans-serif", letterSpacing: -1.5, textShadow: `0 0 30px ${accentColor ?? THEME.GOLD}30` }}>
       {value}
     </div>
   </div>
@@ -227,98 +228,197 @@ export default function DealCommandCenter() {
     setToast({ message: "Task deleted", type: "success" });
   };
 
+  const sidebarQuickStats = useMemo(() => {
+    const uc = filteredClients.filter((c) => c.stage === "Under Contract" || c.stage === "Due Diligence" || c.stage === "Clear to Close").length;
+    const closed = filteredClients.filter((c) => c.stage === "Closed").length;
+    return { activeDeals: filteredClients.length, underContract: uc, closingSoon: closingSoonCount, closed };
+  }, [filteredClients, closingSoonCount]);
+
   return (
     <div style={{ minHeight: "100vh", color: THEME.WHITE }}>
       {toast && <Toast message={toast.message} type={toast.type} onDone={() => setToast(null)} />}
 
-      {/* ══════════ HEADER ══════════ */}
-      <header className="bsf-header" style={{
-        padding: "0 40px", height: 80,
-        borderBottom: `1px solid ${THEME.GLASS_BORDER}`,
-        background: "linear-gradient(180deg, rgba(5,10,18,0.97) 0%, rgba(5,10,18,0.88) 100%)",
-        backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
-        position: "sticky", top: 0, zIndex: 50,
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        boxShadow: `0 1px 0 ${THEME.GOLD}20, 0 4px 32px rgba(0,0,0,0.5)`,
+      {/* ══════════ LEFT SIDEBAR (desktop only) ══════════ */}
+      <aside className="bsf-sidebar" style={{
+        background: "linear-gradient(180deg, rgba(4,10,20,0.98) 0%, rgba(2,6,16,0.99) 100%)",
+        borderRight: `1px solid ${THEME.GLASS_BORDER}`,
+        backdropFilter: "blur(24px)",
+        animation: "sidebarSlideIn 0.4s ease-out",
       }}>
-        {/* LEFT: Logo */}
-        <div className="bsf-logo-section" style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <img
-            src="/logo.png.png"
-            alt="Burley Sells Florida"
-            className="bsf-logo-img"
-            style={{ height: 68, objectFit: "contain", filter: "drop-shadow(0 0 14px rgba(201,168,76,0.5)) drop-shadow(0 0 30px rgba(201,168,76,0.2))", animation: "logoGlow 4s ease-in-out infinite" }}
-          />
-          <div>
-            <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: -0.3, color: THEME.WHITE, fontFamily: "'Space Grotesk'", animation: "neonFlicker 10s infinite" }}>
-              Deal Command Center
-            </h1>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
-              <div style={{ width: 6, height: 6, borderRadius: 3, background: THEME.RED, boxShadow: `0 0 8px ${THEME.RED}`, animation: "livePulse 1.5s infinite" }} />
-              <span style={{ fontSize: 10, color: THEME.GOLD, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" }}>Live · {timeStr}</span>
+        {/* Logo */}
+        <div style={{ padding: "24px 20px 16px", borderBottom: `1px solid ${THEME.GLASS_BORDER}` }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <img src="/logo.png.png" alt="BSF" className="bsf-logo-img" style={{ height: 52, objectFit: "contain", animation: "logoGlow 4s ease-in-out infinite" }} />
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: THEME.WHITE, fontFamily: "'Space Grotesk'", letterSpacing: -0.3 }}>Deal Command</div>
+              <div style={{ fontSize: 8, color: THEME.GOLD_DIM, textTransform: "uppercase", letterSpacing: 2.5, fontWeight: 600 }}>Burley Sells Florida</div>
             </div>
-            <div style={{ fontSize: 8, color: THEME.GOLD_DIM, textTransform: "uppercase", letterSpacing: 3, marginTop: 2, fontWeight: 600 }}>Burley Sells Florida</div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 12 }}>
+            <div style={{ width: 6, height: 6, borderRadius: 3, background: THEME.RED, boxShadow: `0 0 8px ${THEME.RED}`, animation: "livePulse 1.5s infinite" }} />
+            <span style={{ fontSize: 10, color: THEME.GOLD, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "'JetBrains Mono'" }}>{timeStr}</span>
           </div>
         </div>
 
-        {/* CENTER: Tabs */}
-        <div className="bsf-tabs" style={{ display: "flex", gap: 2, background: "rgba(255,255,255,0.03)", padding: "5px 6px", borderRadius: 12, border: `1px solid ${THEME.GLASS_BORDER}` }}>
+        {/* Nav Tabs */}
+        <nav style={{ flex: 1, padding: "12px 10px", display: "flex", flexDirection: "column", gap: 2 }}>
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
+                  borderRadius: 10, border: "none", cursor: "pointer",
+                  fontFamily: "'Space Grotesk'", fontSize: 13, fontWeight: isActive ? 700 : 500,
+                  background: isActive ? `linear-gradient(135deg, ${THEME.GOLD}18, ${THEME.GOLD}06)` : "transparent",
+                  color: isActive ? THEME.GOLD : THEME.TEXT_DIM,
+                  borderLeft: isActive ? `3px solid ${THEME.GOLD}` : "3px solid transparent",
+                  transition: "all 0.2s",
+                  position: "relative",
+                }}
+                onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
+                onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+              >
+                {tab.icon}
+                {tab.label}
+                {isActive && <div style={{ position: "absolute", right: 10, width: 5, height: 5, borderRadius: 3, background: THEME.GOLD, boxShadow: `0 0 8px ${THEME.GOLD}` }} />}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Quick Stats */}
+        <div style={{ padding: "16px 14px", borderTop: `1px solid ${THEME.GLASS_BORDER}` }}>
+          <div style={{ fontSize: 9, color: THEME.TEXT_DIM, textTransform: "uppercase", letterSpacing: 2, fontWeight: 700, marginBottom: 12 }}>Quick Stats</div>
+          {[
+            { label: "Active Deals", value: sidebarQuickStats.activeDeals, color: THEME.GREEN },
+            { label: "Under Contract", value: sidebarQuickStats.underContract, color: THEME.GOLD },
+            { label: "Closing Soon", value: sidebarQuickStats.closingSoon, color: THEME.ORANGE },
+          ].map((s) => (
+            <div key={s.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0" }}>
+              <span style={{ fontSize: 11, color: THEME.TEXT_DIM, fontWeight: 500 }}>{s.label}</span>
+              <span style={{ fontSize: 14, color: s.color, fontWeight: 700, fontFamily: "'Space Grotesk'", textShadow: `0 0 12px ${s.color}30` }}>{s.value}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Action Buttons */}
+        <div style={{ padding: "12px 14px 20px", display: "flex", flexDirection: "column", gap: 6 }}>
+          <button
+            onClick={() => setShowAddClient(true)}
+            style={{
+              padding: "10px 14px", borderRadius: 10, border: "none", cursor: "pointer",
+              background: `linear-gradient(135deg, ${THEME.GOLD}, ${THEME.GOLD_DIM})`,
+              color: THEME.NAVY, fontFamily: "'Space Grotesk'", fontSize: 12, fontWeight: 700,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              boxShadow: `0 4px 16px ${THEME.GOLD_NEON}`, transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = `0 6px 24px ${THEME.GOLD_NEON}`; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `0 4px 16px ${THEME.GOLD_NEON}`; }}
+          >
+            <Plus size={14} /> New Client
+          </button>
+          <button
+            onClick={() => setShowAddTask(true)}
+            style={{
+              padding: "10px 14px", borderRadius: 10, cursor: "pointer",
+              background: "rgba(255,255,255,0.04)", border: `1px solid ${THEME.GLASS_BORDER}`,
+              color: THEME.TEXT_DIM, fontFamily: "'Space Grotesk'", fontSize: 12, fontWeight: 600,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${THEME.BLUE}40`; e.currentTarget.style.color = THEME.BLUE; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = THEME.GLASS_BORDER; e.currentTarget.style.color = THEME.TEXT_DIM; }}
+          >
+            <Plus size={14} /> New Task
+          </button>
+        </div>
+      </aside>
+
+      {/* ══════════ MOBILE/TABLET HEADER (hidden on desktop) ══════════ */}
+      <header className="bsf-desktop-header" style={{
+        padding: "0 24px", height: 72,
+        borderBottom: `1px solid ${THEME.GLASS_BORDER}`,
+        background: "linear-gradient(180deg, rgba(2,6,16,0.97) 0%, rgba(2,6,16,0.92) 100%)",
+        backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
+        position: "sticky", top: 0, zIndex: 50,
+        display: "none", justifyContent: "space-between", alignItems: "center",
+        boxShadow: `0 1px 0 ${THEME.GOLD}15, 0 4px 32px rgba(0,0,0,0.5)`,
+      }}>
+        <div className="bsf-logo-section" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <img src="/logo.png.png" alt="BSF" className="bsf-logo-img" style={{ height: 48, objectFit: "contain", animation: "logoGlow 4s ease-in-out infinite" }} />
+          <div>
+            <h1 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: THEME.WHITE, fontFamily: "'Space Grotesk'" }}>Deal Command</h1>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+              <div style={{ width: 5, height: 5, borderRadius: 3, background: THEME.RED, boxShadow: `0 0 6px ${THEME.RED}`, animation: "livePulse 1.5s infinite" }} />
+              <span style={{ fontSize: 9, color: THEME.GOLD, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase" }}>Live · {timeStr}</span>
+            </div>
+          </div>
+        </div>
+        {/* Desktop tabs (hidden on mobile, shown on tablet) */}
+        <div className="bsf-desktop-tabs" style={{ display: "flex", gap: 2, background: "rgba(255,255,255,0.03)", padding: "4px 5px", borderRadius: 10, border: `1px solid ${THEME.GLASS_BORDER}` }}>
           {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              className="bsf-tab-btn"
-              onClick={() => setActiveTab(tab.id)}
-              style={{
-                padding: "7px 18px", borderRadius: 8,
-                border: activeTab === tab.id ? `1px solid ${THEME.GOLD}40` : "1px solid transparent",
-                cursor: "pointer", fontFamily: "'Space Grotesk'", fontSize: 12, fontWeight: 600,
-                background: activeTab === tab.id ? `linear-gradient(135deg, ${THEME.GOLD}20, ${THEME.GOLD}08)` : "transparent",
-                color: activeTab === tab.id ? THEME.GOLD : THEME.TEXT_DIM,
-                transition: "all 0.2s",
-                boxShadow: activeTab === tab.id ? `0 0 12px ${THEME.GOLD_GLOW}` : "none",
-                display: "flex", alignItems: "center", gap: 6,
-              }}
-            >
+            <button key={tab.id} className="bsf-tab-btn" onClick={() => setActiveTab(tab.id)} style={{
+              padding: "6px 14px", borderRadius: 7, border: activeTab === tab.id ? `1px solid ${THEME.GOLD}40` : "1px solid transparent",
+              cursor: "pointer", fontFamily: "'Space Grotesk'", fontSize: 11, fontWeight: 600,
+              background: activeTab === tab.id ? `${THEME.GOLD}15` : "transparent",
+              color: activeTab === tab.id ? THEME.GOLD : THEME.TEXT_DIM,
+              transition: "all 0.2s", display: "flex", alignItems: "center", gap: 5,
+            }}>
               {tab.icon}
               <span className="bsf-tab-label">{tab.label}</span>
             </button>
           ))}
         </div>
-
-        {/* RIGHT: Actions */}
         <div className="bsf-header-actions" style={{ display: "flex", gap: 8 }}>
-          <button
-            onClick={() => setShowAddClient(true)}
-            style={{
-              padding: "8px 16px", borderRadius: 10, border: `1px solid ${THEME.GOLD}40`,
-              background: `linear-gradient(135deg, ${THEME.GOLD}15, transparent)`,
-              color: THEME.GOLD, cursor: "pointer", fontFamily: "'Space Grotesk'",
-              fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 5,
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = `linear-gradient(135deg, ${THEME.GOLD}25, ${THEME.GOLD}10)`; e.currentTarget.style.boxShadow = `0 0 16px ${THEME.GOLD_GLOW}`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = `linear-gradient(135deg, ${THEME.GOLD}15, transparent)`; e.currentTarget.style.boxShadow = "none"; }}
-          >
-            <Plus size={14} /> Client
+          <button onClick={() => setShowAddClient(true)} style={{
+            padding: "7px 14px", borderRadius: 8, border: "none", cursor: "pointer",
+            background: `linear-gradient(135deg, ${THEME.GOLD}, ${THEME.GOLD_DIM})`,
+            color: THEME.NAVY, fontFamily: "'Space Grotesk'", fontSize: 11, fontWeight: 700,
+            display: "flex", alignItems: "center", gap: 4,
+          }}>
+            <Plus size={13} /> Client
           </button>
-          <button
-            onClick={() => setShowAddTask(true)}
-            style={{
-              padding: "8px 16px", borderRadius: 10, border: `1px solid ${THEME.BLUE}40`,
-              background: `linear-gradient(135deg, ${THEME.BLUE}15, transparent)`,
-              color: THEME.BLUE, cursor: "pointer", fontFamily: "'Space Grotesk'",
-              fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 5,
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = `linear-gradient(135deg, ${THEME.BLUE}25, ${THEME.BLUE}10)`; e.currentTarget.style.boxShadow = `0 0 16px rgba(59,130,246,0.15)`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = `linear-gradient(135deg, ${THEME.BLUE}15, transparent)`; e.currentTarget.style.boxShadow = "none"; }}
-          >
-            <Plus size={14} /> Task
+          <button onClick={() => setShowAddTask(true)} style={{
+            padding: "7px 14px", borderRadius: 8, cursor: "pointer",
+            background: "rgba(255,255,255,0.05)", border: `1px solid ${THEME.GLASS_BORDER}`,
+            color: THEME.TEXT_DIM, fontFamily: "'Space Grotesk'", fontSize: 11, fontWeight: 600,
+            display: "flex", alignItems: "center", gap: 4,
+          }}>
+            <Plus size={13} /> Task
           </button>
         </div>
       </header>
 
+      {/* ══════════ MOBILE BOTTOM NAV ══════════ */}
+      <nav className="bsf-bottom-nav">
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+                padding: "8px 6px", borderRadius: 10, border: "none", cursor: "pointer",
+                background: isActive ? `${THEME.GOLD}12` : "transparent",
+                color: isActive ? THEME.GOLD : THEME.TEXT_DIM,
+                fontFamily: "'Space Grotesk'", fontSize: 9, fontWeight: isActive ? 700 : 500,
+                minWidth: 52, transition: "all 0.2s", position: "relative",
+              }}
+            >
+              {isActive && <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 20, height: 2, borderRadius: 1, background: THEME.GOLD, boxShadow: `0 0 8px ${THEME.GOLD}` }} />}
+              {tab.icon}
+              {tab.label.split(" ")[0]}
+            </button>
+          );
+        })}
+      </nav>
+
       {/* ══════════ CONTENT ══════════ */}
+      <div className="bsf-main-area">
       {loading ? (
         <LoadingSkeleton />
       ) : (
@@ -344,14 +444,11 @@ export default function DealCommandCenter() {
               </div>
 
               {/* KPI Row */}
-              <div style={{ position: "relative" }}>
-                <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "80%", height: "150%", background: `radial-gradient(ellipse at center, ${THEME.GOLD}08 0%, transparent 70%)`, pointerEvents: "none", zIndex: 0 }} />
-              <div className="bsf-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20, marginBottom: 28, position: "relative", zIndex: 1 }}>
-                <KpiCard icon={<Activity size={20} color={THEME.GREEN} />} label="Active Deals" value={filteredClients.length} valueColor={THEME.WHITE} accentColor={THEME.GREEN} delay={0} />
-                <KpiCard icon={<DollarSign size={20} color={THEME.GOLD} />} label="Pipeline Volume" value={totalPipelineValue > 0 ? formatCurrency(totalPipelineValue) : "—"} valueColor={THEME.GOLD} accentColor={THEME.GOLD} delay={0.05} />
-                <KpiCard icon={<Zap size={20} color={THEME.CYAN} />} label="Under Contract" value={filteredClients.filter((c) => c.stage === "Under Contract").length} valueColor={THEME.CYAN} accentColor={THEME.CYAN} delay={0.1} />
-                <KpiCard icon={<CalendarIcon size={20} color={THEME.ORANGE} />} label="Closing Soon" value={closingSoonCount} valueColor={THEME.ORANGE} accentColor={THEME.ORANGE} delay={0.15} />
-              </div>
+              <div className="bsf-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
+                <KpiCard icon={<Activity size={18} color={THEME.GREEN} />} label="Active Deals" value={filteredClients.length} valueColor={THEME.WHITE} accentColor={THEME.GREEN} delay={0} />
+                <KpiCard icon={<DollarSign size={18} color={THEME.GOLD} />} label="Pipeline Volume" value={totalPipelineValue > 0 ? formatCurrency(totalPipelineValue) : "—"} valueColor={THEME.GOLD} accentColor={THEME.GOLD} delay={0.05} />
+                <KpiCard icon={<Zap size={18} color={THEME.CYAN} />} label="Under Contract" value={filteredClients.filter((c) => c.stage === "Under Contract").length} valueColor={THEME.CYAN} accentColor={THEME.CYAN} delay={0.1} />
+                <KpiCard icon={<CalendarIcon size={18} color={THEME.ORANGE} />} label="Closing Soon" value={closingSoonCount} valueColor={THEME.ORANGE} accentColor={THEME.ORANGE} delay={0.15} />
               </div>
 
               {/* Chart */}
@@ -422,6 +519,8 @@ export default function DealCommandCenter() {
                                 boxShadow: isSelected ? `0 0 0 1px ${THEME.GOLD}30, 0 12px 48px rgba(0,0,0,0.5)` : "none",
                                 cursor: "pointer", display: "flex", alignItems: "center", gap: 20,
                                 transition: "all 0.25s ease",
+                                borderLeft: `4px solid ${getStageColor(client.stage)}`,
+                                position: "relative", overflow: "hidden",
                               }),
                             }}
                             className="bsf-client-row"
@@ -616,6 +715,7 @@ export default function DealCommandCenter() {
 
       {/* ── AI CHAT ── */}
       <AIChatWindow clients={clients} tasks={tasks} onRefresh={refreshAll} />
+      </div>{/* end bsf-main-area */}
 
       {/* ── MODALS ── */}
       {showAddClient && <AddClientModal onClose={() => setShowAddClient(false)} onAdded={handleClientAdded} />}

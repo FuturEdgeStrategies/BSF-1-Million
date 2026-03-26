@@ -496,63 +496,66 @@ const AdminChat = ({ clients, tasks, onRefresh }) => {
 
   return (
     <div style={{ animation: "fadeIn 0.4s ease-out" }}>
-      {/* Header Banner */}
-      <div style={{ ...glassCard({ padding: "24px 32px", marginBottom: 20, position: "relative", overflow: "hidden", border: `1px solid ${THEME.GOLD}25` }) }}>
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${THEME.GOLD}, ${THEME.CYAN}, ${THEME.GOLD})` }} />
+      {/* Header Banner — Terminal Style */}
+      <div style={{ ...glassCard({ padding: "20px 28px", marginBottom: 16, position: "relative", overflow: "hidden", border: `1px solid ${THEME.GOLD}20` }) }}>
+        <div style={{ position: "absolute", top: 0, left: 0, width: 3, bottom: 0, background: THEME.GOLD }} />
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, ${THEME.GOLD}80, ${THEME.CYAN}40, transparent)` }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 14, background: `linear-gradient(135deg, ${THEME.GOLD}25, ${THEME.CYAN}15)`, border: `1px solid ${THEME.GOLD}30`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Zap size={20} color={THEME.GOLD} />
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: `${THEME.GOLD}12`, border: `1px solid ${THEME.GOLD}25`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Zap size={18} color={THEME.GOLD} />
             </div>
             <div>
-              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: THEME.WHITE, fontFamily: "'Space Grotesk'", letterSpacing: -0.3 }}>
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: THEME.WHITE, fontFamily: "'Space Grotesk'", letterSpacing: -0.3 }}>
                 AI Command Center
               </h2>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
                 <div style={{ width: 6, height: 6, borderRadius: 3, background: THEME.GREEN, boxShadow: `0 0 8px ${THEME.GREEN}`, animation: "livePulse 2s infinite" }} />
-                <span style={{ fontSize: 11, color: THEME.GREEN, fontWeight: 600, letterSpacing: 0.5 }}>Full Pipeline Control</span>
+                <span style={{ fontSize: 10, color: THEME.GREEN, fontWeight: 600, letterSpacing: 0.5, fontFamily: "'JetBrains Mono'" }}>CONNECTED</span>
               </div>
             </div>
           </div>
           <button
             onClick={handleClear}
             style={{
-              padding: "8px 14px", borderRadius: 8, border: `1px solid ${THEME.RED}30`,
-              background: "rgba(255,59,48,0.08)", color: THEME.RED, cursor: "pointer",
-              fontFamily: "'Space Grotesk'", fontSize: 11, fontWeight: 600,
+              padding: "7px 12px", borderRadius: 8, border: `1px solid ${THEME.RED}25`,
+              background: "rgba(255,59,48,0.06)", color: THEME.RED, cursor: "pointer",
+              fontFamily: "'JetBrains Mono'", fontSize: 10, fontWeight: 600,
               display: "flex", alignItems: "center", gap: 5, transition: "all 0.2s",
             }}
           >
-            <Trash2 size={12} /> Clear History
+            <Trash2 size={11} /> CLEAR
           </button>
         </div>
       </div>
 
-      {/* Chat Area */}
-      <div style={{ ...glassCard({ padding: 0, height: "calc(100vh - 260px)", display: "flex", flexDirection: "column", overflow: "hidden" }) }}>
+      {/* Chat Area — Terminal Style */}
+      <div style={{ ...glassCard({ padding: 0, height: "calc(100vh - 240px)", display: "flex", flexDirection: "column", overflow: "hidden", border: `1px solid ${THEME.GOLD}15` }) }}>
         {/* Messages */}
-        <div style={{ flex: 1, padding: "24px 32px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ flex: 1, padding: "20px 28px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 12, background: "rgba(2,6,16,0.5)" }}>
           {loadingHistory ? (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: THEME.TEXT_DIM, fontSize: 14 }}>
-              Loading conversation history...
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: THEME.TEXT_DIM, fontSize: 13, fontFamily: "'JetBrains Mono'" }}>
+              Loading history...
             </div>
           ) : (
             messages.map((m, i) => (
-              <div key={i} style={{ alignSelf: m.role === "user" ? "flex-end" : "flex-start", maxWidth: "75%", animation: "fadeIn 0.2s ease-out" }}>
+              <div key={i} style={{ alignSelf: m.role === "user" ? "flex-end" : "flex-start", maxWidth: "78%", animation: "fadeIn 0.2s ease-out" }}>
                 {m.role === "assistant" && (
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                    <Bot size={12} color={THEME.GOLD} />
-                    <span style={{ fontSize: 10, color: THEME.GOLD, fontWeight: 600 }}>BSF AI</span>
+                    <Bot size={11} color={THEME.GOLD} />
+                    <span style={{ fontSize: 9, color: THEME.GOLD, fontWeight: 700, fontFamily: "'JetBrains Mono'", letterSpacing: 1, textTransform: "uppercase" }}>BSF-AI</span>
                   </div>
                 )}
                 <div style={{
                   background: m.role === "user"
                     ? `linear-gradient(135deg, ${THEME.GOLD}, ${THEME.GOLD_DIM})`
-                    : "rgba(255,255,255,0.05)",
+                    : "rgba(255,255,255,0.04)",
                   color: m.role === "user" ? THEME.NAVY : THEME.WHITE,
-                  padding: "12px 18px", borderRadius: 16, fontSize: 14, lineHeight: 1.6,
-                  border: m.role === "assistant" ? "1px solid rgba(255,255,255,0.06)" : "none",
-                  whiteSpace: "pre-wrap",
+                  padding: "11px 16px", borderRadius: m.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+                  fontSize: 13.5, lineHeight: 1.65,
+                  border: m.role === "assistant" ? `1px solid rgba(201,168,76,0.08)` : "none",
+                  borderLeft: m.role === "assistant" ? `2px solid ${THEME.GOLD}40` : "none",
+                  whiteSpace: "pre-wrap", fontFamily: m.role === "assistant" ? "'JetBrains Mono', monospace" : "'Space Grotesk'",
                 }}>
                   {m.content}
                 </div>
@@ -560,11 +563,12 @@ const AdminChat = ({ clients, tasks, onRefresh }) => {
             ))
           )}
           {loading && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 0" }}>
-              <Bot size={12} color={THEME.GOLD} />
-              <div style={{ display: "flex", gap: 4 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0" }}>
+              <Bot size={11} color={THEME.GOLD} />
+              <span style={{ fontSize: 11, color: THEME.GOLD, fontFamily: "'JetBrains Mono'", fontWeight: 600 }}>Processing</span>
+              <div style={{ display: "flex", gap: 3 }}>
                 {[0, 1, 2].map((d) => (
-                  <div key={d} style={{ width: 7, height: 7, borderRadius: 4, background: THEME.GOLD, animation: `typing 1.4s ease-in-out ${d * 0.2}s infinite` }} />
+                  <div key={d} style={{ width: 6, height: 6, borderRadius: 3, background: THEME.GOLD, animation: `typing 1.4s ease-in-out ${d * 0.2}s infinite` }} />
                 ))}
               </div>
             </div>
@@ -572,50 +576,50 @@ const AdminChat = ({ clients, tasks, onRefresh }) => {
           <div ref={endRef} />
         </div>
 
-        {/* Input Bar */}
+        {/* Input Bar — Terminal Style */}
         <form
           onSubmit={(e) => { e.preventDefault(); handleSend(); }}
           style={{
-            padding: "16px 32px", borderTop: `1px solid ${THEME.GLASS_BORDER}`,
-            background: "rgba(5,10,18,0.95)", display: "flex", gap: 10, alignItems: "flex-end",
+            padding: "14px 24px", borderTop: `1px solid ${THEME.GOLD}15`,
+            background: "rgba(4,10,20,0.95)", display: "flex", gap: 10, alignItems: "flex-end",
           }}
         >
           <button
             type="button"
             onClick={isRecording ? stopVoice : startVoice}
             style={{
-              width: 42, height: 42, borderRadius: 12,
-              background: isRecording ? "rgba(255,59,48,0.2)" : "rgba(255,255,255,0.05)",
-              border: isRecording ? `1px solid ${THEME.RED}50` : "1px solid rgba(255,255,255,0.1)",
+              width: 40, height: 40, borderRadius: 10,
+              background: isRecording ? "rgba(255,59,48,0.15)" : "rgba(255,255,255,0.04)",
+              border: isRecording ? `1px solid ${THEME.RED}40` : `1px solid ${THEME.GLASS_BORDER}`,
               color: isRecording ? THEME.RED : THEME.TEXT_DIM,
               cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
               transition: "all 0.2s", flexShrink: 0,
               animation: isRecording ? "recording 1.5s ease-in-out infinite" : "none",
             }}
           >
-            {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
+            {isRecording ? <MicOff size={16} /> : <Mic size={16} />}
           </button>
           <textarea
             value={input} onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && e.shiftKey) { e.preventDefault(); handleSend(); } }}
-            placeholder={isRecording ? "Listening..." : "Type notes or commands... (Shift+Enter to send)"}
+            placeholder={isRecording ? "Listening..." : "Enter command... (Shift+Enter to send)"}
             rows={2}
             style={{
-              flex: 1, padding: "12px 20px", borderRadius: 12,
-              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)",
-              color: THEME.WHITE, outline: "none", fontFamily: "'Space Grotesk'", fontSize: 14,
+              flex: 1, padding: "10px 16px", borderRadius: 10,
+              background: "rgba(255,255,255,0.03)", border: `1px solid ${THEME.GLASS_BORDER}`,
+              color: THEME.GREEN, outline: "none", fontFamily: "'JetBrains Mono', monospace", fontSize: 13,
               transition: "border-color 0.2s", resize: "none", lineHeight: 1.5,
-              minHeight: 44, maxHeight: 160, overflowY: "auto",
+              minHeight: 42, maxHeight: 160, overflowY: "auto",
             }}
             onFocus={(e) => { e.target.style.borderColor = `${THEME.GOLD}40`; }}
-            onBlur={(e) => { e.target.style.borderColor = "rgba(255,255,255,0.08)"; }}
+            onBlur={(e) => { e.target.style.borderColor = THEME.GLASS_BORDER; }}
             onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px"; }}
           />
           <button
             type="submit"
             style={{
               background: `linear-gradient(135deg, ${THEME.GOLD}, ${THEME.GOLD_DIM})`,
-              color: THEME.NAVY, border: "none", width: 42, height: 42, borderRadius: 12,
+              color: THEME.NAVY, border: "none", width: 40, height: 40, borderRadius: 10,
               display: "flex", alignItems: "center", justifyContent: "center",
               cursor: loading ? "not-allowed" : "pointer",
               opacity: loading || !input.trim() ? 0.4 : 1,
@@ -623,7 +627,7 @@ const AdminChat = ({ clients, tasks, onRefresh }) => {
               transition: "all 0.2s", flexShrink: 0,
             }}
           >
-            <Send size={18} />
+            <Send size={16} />
           </button>
         </form>
       </div>

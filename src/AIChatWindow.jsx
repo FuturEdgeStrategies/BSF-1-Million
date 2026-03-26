@@ -326,18 +326,18 @@ const AIChatWindow = ({ clients, tasks, onRefresh }) => {
       <button
         onClick={() => setIsOpen(true)}
         style={{
-          position: "fixed", bottom: 28, right: 28, width: 62, height: 62, borderRadius: 31,
+          position: "fixed", bottom: 28, right: 28, width: 56, height: 56, borderRadius: 16,
           background: `linear-gradient(135deg, ${THEME.GOLD}, ${THEME.GOLD_DIM})`,
           color: THEME.NAVY, border: "none", cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: `0 8px 32px rgba(0,0,0,0.6), 0 0 24px ${THEME.GOLD_NEON}`,
+          boxShadow: `0 8px 32px rgba(0,0,0,0.6), 0 0 20px ${THEME.GOLD_NEON}`,
           zIndex: 1000, transition: "transform 0.2s, box-shadow 0.2s",
-          animation: "glowPulse 2.5s ease-in-out infinite",
+          animation: "glowPulse 3s ease-in-out infinite",
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.08) translateY(-2px)"; }}
         onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
       >
-        <MessageSquare size={26} />
+        <MessageSquare size={22} />
       </button>
     );
   }
@@ -347,101 +347,88 @@ const AIChatWindow = ({ clients, tasks, onRefresh }) => {
     <div
       className="bsf-floating-chat"
       style={{
-        position: "fixed", bottom: 28, right: 28, width: 420, height: 560,
-        borderRadius: 20, overflow: "hidden",
+        position: "fixed", bottom: 28, right: 28, width: 400, height: 540,
+        borderRadius: 18, overflow: "hidden",
         display: "flex", flexDirection: "column",
-        boxShadow: `0 24px 80px rgba(0,0,0,0.7), 0 0 40px ${THEME.GOLD_GLOW}`,
+        boxShadow: `0 24px 80px rgba(0,0,0,0.75), 0 0 50px ${THEME.GOLD_GLOW}`,
         zIndex: 1000, animation: "slideUp 0.35s ease-out",
-        ...glassCard({ border: `1px solid ${THEME.GOLD}35` }),
+        ...glassCard({ border: `1px solid ${THEME.GOLD}20` }),
       }}
     >
       {/* Header */}
       <div
         style={{
-          padding: "16px 20px",
-          background: "rgba(5,10,18,0.95)",
-          borderBottom: `1px solid ${THEME.GOLD}20`,
+          padding: "14px 18px",
+          background: "rgba(4,10,20,0.97)",
+          borderBottom: `1px solid ${THEME.GOLD}15`,
           display: "flex", justifyContent: "space-between", alignItems: "center",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{
-            width: 34, height: 34, borderRadius: 10,
-            background: `linear-gradient(135deg, ${THEME.GOLD}25, ${THEME.GOLD}10)`,
-            border: `1px solid ${THEME.GOLD}30`,
+            width: 32, height: 32, borderRadius: 8,
+            background: `${THEME.GOLD}12`, border: `1px solid ${THEME.GOLD}25`,
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <Zap size={16} color={THEME.GOLD} />
+            <Zap size={14} color={THEME.GOLD} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, color: THEME.WHITE, fontFamily: "'Space Grotesk'", fontSize: 14, letterSpacing: -0.2 }}>
-              BSF Deal Assistant
+            <div style={{ fontWeight: 700, color: THEME.WHITE, fontFamily: "'Space Grotesk'", fontSize: 13, letterSpacing: -0.2 }}>
+              BSF Assistant
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 1 }}>
-              <div style={{ width: 6, height: 6, borderRadius: 3, background: THEME.GREEN, boxShadow: `0 0 8px ${THEME.GREEN}`, animation: "livePulse 2s infinite" }} />
-              <span style={{ fontSize: 10, color: THEME.GREEN, fontWeight: 600, letterSpacing: 0.5 }}>AI + Functions</span>
+              <div style={{ width: 5, height: 5, borderRadius: 3, background: THEME.GREEN, boxShadow: `0 0 6px ${THEME.GREEN}`, animation: "livePulse 2s infinite" }} />
+              <span style={{ fontSize: 9, color: THEME.GREEN, fontWeight: 600, letterSpacing: 0.8, fontFamily: "'JetBrains Mono'" }}>ONLINE</span>
             </div>
           </div>
         </div>
         <button
           onClick={() => setIsOpen(false)}
           style={{
-            background: "rgba(255,255,255,0.05)", border: "none", color: THEME.TEXT_DIM,
-            cursor: "pointer", width: 30, height: 30, borderRadius: 8,
+            background: "rgba(255,255,255,0.04)", border: `1px solid ${THEME.GLASS_BORDER}`, color: THEME.TEXT_DIM,
+            cursor: "pointer", width: 28, height: 28, borderRadius: 7,
             display: "flex", alignItems: "center", justifyContent: "center",
             transition: "all 0.2s",
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = THEME.WHITE; e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = THEME.TEXT_DIM; e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = THEME.WHITE; e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = THEME.TEXT_DIM; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
         >
-          <X size={16} />
+          <X size={14} />
         </button>
       </div>
 
       {/* Messages */}
-      <div style={{ flex: 1, padding: 16, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ flex: 1, padding: 14, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10, background: "rgba(2,6,16,0.4)" }}>
         {messages.map((m, i) => (
-          <div
-            key={i}
-            style={{
-              alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-              maxWidth: "85%",
-              animation: `fadeIn 0.25s ease-out`,
-            }}
-          >
+          <div key={i} style={{ alignSelf: m.role === "user" ? "flex-end" : "flex-start", maxWidth: "85%", animation: "fadeIn 0.25s ease-out" }}>
             {m.role === "assistant" && (
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                <Bot size={12} color={THEME.GOLD} />
-                <span style={{ fontSize: 10, color: THEME.GOLD, fontWeight: 600 }}>AI</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 3 }}>
+                <Bot size={10} color={THEME.GOLD} />
+                <span style={{ fontSize: 9, color: THEME.GOLD, fontWeight: 700, fontFamily: "'JetBrains Mono'", letterSpacing: 0.8 }}>AI</span>
               </div>
             )}
-            <div
-              style={{
-                background: m.role === "user"
-                  ? `linear-gradient(135deg, ${THEME.GOLD}, ${THEME.GOLD_DIM})`
-                  : "rgba(255,255,255,0.05)",
-                color: m.role === "user" ? THEME.NAVY : THEME.WHITE,
-                padding: "10px 14px", borderRadius: 14, fontSize: 13.5, lineHeight: 1.55,
-                border: m.role === "assistant" ? "1px solid rgba(255,255,255,0.06)" : "none",
-                whiteSpace: "pre-wrap",
-              }}
-            >
+            <div style={{
+              background: m.role === "user"
+                ? `linear-gradient(135deg, ${THEME.GOLD}, ${THEME.GOLD_DIM})`
+                : "rgba(255,255,255,0.04)",
+              color: m.role === "user" ? THEME.NAVY : THEME.WHITE,
+              padding: "9px 13px", borderRadius: m.role === "user" ? "12px 12px 4px 12px" : "12px 12px 12px 4px",
+              fontSize: 13, lineHeight: 1.55,
+              border: m.role === "assistant" ? `1px solid rgba(201,168,76,0.06)` : "none",
+              borderLeft: m.role === "assistant" ? `2px solid ${THEME.GOLD}30` : "none",
+              whiteSpace: "pre-wrap",
+              fontFamily: m.role === "assistant" ? "'JetBrains Mono', monospace" : "'Space Grotesk'",
+            }}>
               {m.content}
             </div>
           </div>
         ))}
         {loading && (
-          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 0" }}>
-            <Bot size={12} color={THEME.GOLD} />
-            <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 0" }}>
+            <Bot size={10} color={THEME.GOLD} />
+            <div style={{ display: "flex", gap: 3 }}>
               {[0, 1, 2].map((d) => (
-                <div
-                  key={d}
-                  style={{
-                    width: 6, height: 6, borderRadius: 3, background: THEME.GOLD,
-                    animation: `typing 1.4s ease-in-out ${d * 0.2}s infinite`,
-                  }}
-                />
+                <div key={d} style={{ width: 5, height: 5, borderRadius: 3, background: THEME.GOLD, animation: `typing 1.4s ease-in-out ${d * 0.2}s infinite` }} />
               ))}
             </div>
           </div>
@@ -453,64 +440,47 @@ const AIChatWindow = ({ clients, tasks, onRefresh }) => {
       <form
         onSubmit={(e) => { e.preventDefault(); handleSend(); }}
         style={{
-          padding: "14px 16px",
-          background: "rgba(5,10,18,0.95)",
-          borderTop: "1px solid rgba(255,255,255,0.06)",
-          display: "flex", gap: 8, alignItems: "center",
+          padding: "12px 14px",
+          background: "rgba(4,10,20,0.97)",
+          borderTop: `1px solid ${THEME.GOLD}10`,
+          display: "flex", gap: 7, alignItems: "center",
         }}
       >
-        {/* Voice button */}
-        <button
-          type="button"
-          onClick={isRecording ? stopVoice : startVoice}
-          style={{
-            width: 38, height: 38, borderRadius: 10,
-            background: isRecording ? "rgba(255,59,48,0.2)" : "rgba(255,255,255,0.05)",
-            border: isRecording ? "1px solid rgba(255,59,48,0.5)" : "1px solid rgba(255,255,255,0.1)",
-            color: isRecording ? THEME.RED : THEME.TEXT_DIM,
-            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-            transition: "all 0.2s", flexShrink: 0,
-            animation: isRecording ? "recording 1.5s ease-in-out infinite" : "none",
-          }}
-          title={isRecording ? "Stop recording" : "Voice input"}
-        >
-          {isRecording ? <MicOff size={16} /> : <Mic size={16} />}
+        <button type="button" onClick={isRecording ? stopVoice : startVoice} style={{
+          width: 36, height: 36, borderRadius: 8,
+          background: isRecording ? "rgba(255,59,48,0.12)" : "rgba(255,255,255,0.03)",
+          border: isRecording ? `1px solid ${THEME.RED}35` : `1px solid ${THEME.GLASS_BORDER}`,
+          color: isRecording ? THEME.RED : THEME.TEXT_DIM,
+          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "all 0.2s", flexShrink: 0,
+          animation: isRecording ? "recording 1.5s ease-in-out infinite" : "none",
+        }}>
+          {isRecording ? <MicOff size={14} /> : <Mic size={14} />}
         </button>
-
-        {/* Text input */}
         <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
+          type="text" value={input} onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleSend(); } }}
-          placeholder={isRecording ? "Listening..." : "Ask anything or give a command..."}
+          placeholder={isRecording ? "Listening..." : "Command..."}
           style={{
-            flex: 1, padding: "10px 16px", borderRadius: 10,
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            color: THEME.WHITE, outline: "none",
-            fontFamily: "'Space Grotesk', sans-serif", fontSize: 13.5,
+            flex: 1, padding: "9px 14px", borderRadius: 8,
+            background: "rgba(255,255,255,0.03)", border: `1px solid ${THEME.GLASS_BORDER}`,
+            color: THEME.GREEN, outline: "none",
+            fontFamily: "'JetBrains Mono', monospace", fontSize: 12.5,
             transition: "border-color 0.2s",
           }}
-          onFocus={(e) => { e.target.style.borderColor = `${THEME.GOLD}40`; }}
-          onBlur={(e) => { e.target.style.borderColor = "rgba(255,255,255,0.08)"; }}
+          onFocus={(e) => { e.target.style.borderColor = `${THEME.GOLD}35`; }}
+          onBlur={(e) => { e.target.style.borderColor = THEME.GLASS_BORDER; }}
         />
-
-        {/* Send button */}
-        <button
-          type="submit"
-          style={{
-            background: `linear-gradient(135deg, ${THEME.GOLD}, ${THEME.GOLD_DIM})`,
-            color: THEME.NAVY, border: "none",
-            width: 38, height: 38, borderRadius: 10,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: loading ? "not-allowed" : "pointer",
-            opacity: loading || !input.trim() ? 0.4 : 1,
-            boxShadow: loading ? "none" : `0 4px 12px ${THEME.GOLD_NEON}`,
-            transition: "all 0.2s", flexShrink: 0,
-          }}
-        >
-          <Send size={16} />
+        <button type="submit" style={{
+          background: `linear-gradient(135deg, ${THEME.GOLD}, ${THEME.GOLD_DIM})`,
+          color: THEME.NAVY, border: "none", width: 36, height: 36, borderRadius: 8,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          cursor: loading ? "not-allowed" : "pointer",
+          opacity: loading || !input.trim() ? 0.4 : 1,
+          boxShadow: loading ? "none" : `0 4px 12px ${THEME.GOLD_NEON}`,
+          transition: "all 0.2s", flexShrink: 0,
+        }}>
+          <Send size={14} />
         </button>
       </form>
     </div>
