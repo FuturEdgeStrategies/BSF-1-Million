@@ -14,6 +14,7 @@ import { BobBoard, AmberBoard, ClientAvatar } from "./TeamBoards";
 import AdminChat from "./AdminChat";
 import CalendarView from "./Calendar";
 import { useToast } from "./ToastContext";
+import CommissionWidget from "./CommissionWidget";
 
 // ═══════════════════════════════════════════════════
 // SUB-COMPONENTS
@@ -602,33 +603,8 @@ export default function DealCommandCenter() {
                                     </div>
                                   </div>
                                 )}
-                                {(() => {
-                                  const comm = calculateCommission(client);
-                                  if (!comm) return null;
-                                  return (
-                                    <div style={{ marginTop: 18, padding: "14px 16px", borderRadius: 10, background: "rgba(0,0,0,0.3)", borderLeft: `3px solid ${THEME.GOLD}` }}>
-                                      <div style={{ fontSize: 10, color: THEME.GOLD, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10, fontWeight: 700 }}>Commission Breakdown</div>
-                                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px" }}>
-                                        <div>
-                                          <div style={{ fontSize: 10, color: THEME.TEXT_DIM, fontWeight: 600 }}>Gross ({(comm.rate * 100).toFixed(1)}%)</div>
-                                          <div style={{ fontSize: 13, color: THEME.WHITE, fontWeight: 600 }}>{formatCurrency(comm.grossCommission)}</div>
-                                        </div>
-                                        <div>
-                                          <div style={{ fontSize: 10, color: THEME.TEXT_DIM, fontWeight: 600 }}>Brokerage (10%)</div>
-                                          <div style={{ fontSize: 13, color: THEME.RED, fontWeight: 600 }}>-{formatCurrency(comm.brokerageCut)}</div>
-                                        </div>
-                                        <div>
-                                          <div style={{ fontSize: 10, color: THEME.TEXT_DIM, fontWeight: 600 }}>Split</div>
-                                          <div style={{ fontSize: 13, color: THEME.WHITE, fontWeight: 500 }}>{comm.splitLabel}</div>
-                                        </div>
-                                        <div>
-                                          <div style={{ fontSize: 10, color: THEME.GOLD, fontWeight: 700 }}>My Take-Home</div>
-                                          <div style={{ fontSize: 15, color: THEME.GOLD, fontWeight: 700, textShadow: `0 0 12px ${THEME.GOLD_GLOW}` }}>{formatCurrency(comm.myTakeHome)}</div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })()}
+                                {/* Commission Widget */}
+                                <CommissionWidget client={client} />
                                 <button
                                   onClick={(e) => { e.stopPropagation(); setEditingClient(client); }}
                                   style={{

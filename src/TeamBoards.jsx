@@ -254,6 +254,9 @@ const MiniClientRow = ({ client, accent, tasks, activities }) => {
             </div>
           )}
 
+          {/* Commission Widget */}
+          <CommissionWidget client={client} />
+
           {/* Client Tasks */}
           {clientTasks.length > 0 && (
             <div>
