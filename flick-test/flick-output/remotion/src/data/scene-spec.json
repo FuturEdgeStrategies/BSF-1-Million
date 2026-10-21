@@ -1,0 +1,10 @@
+{
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "scenes": [
+    {"id": "leads-slipping-away", "name": "Leads slipping away", "transcript": "Most small businesses lose leads they already paid for.", "startMs": 0, "endMs": 6000, "from": 0, "durationInFrames": 180, "componentName": "LeadsSlippingAway", "assets": [], "visualDescription": "Lead cards drop in one by one, then slide away.", "soundEffects": ["Typing.mp3", "Pop.mp3"]},
+    {"id": "capture-reply-book", "name": "Capture reply book", "transcript": "A fast follow up system fixes that. Capture. Reply. Book.", "startMs": 6000, "endMs": 14000, "from": 0, "durationInFrames": 240, "componentName": "CaptureReplyBook", "assets": [], "visualDescription": "Three step tiles joined by drawing connectors, check marks pop.", "soundEffects": ["Click.mp3", "Correct.mp3"]},
+    {"id": "futuredge-builds-it", "name": "FuturEdge builds it", "transcript": "FuturEdge Strategies builds it for you.", "startMs": 14000, "endMs": 20000, "from": 0, "durationInFrames": 180, "componentName": "FuturEdgeBuildsIt", "assets": [], "visualDescription": "Tiles merge into a gold wordmark block and hold.", "soundEffects": ["Impact.mp3"]}
+  ]
+}
